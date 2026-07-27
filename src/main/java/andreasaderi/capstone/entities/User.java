@@ -2,6 +2,7 @@ package andreasaderi.capstone.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,8 +21,9 @@ import java.util.UUID;
 @JsonIgnoreProperties({"password", "enabled", "accountNonExpired", "accountNonLocked"})
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(nullable = false, updatable = false)
+    @GeneratedValue
+    @Setter(AccessLevel.NONE)
+    @Column(nullable = false, name = "user_id")
     private UUID userId;
 
     @Column(nullable = false, unique = true)
