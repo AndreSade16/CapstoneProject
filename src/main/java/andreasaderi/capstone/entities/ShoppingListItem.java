@@ -1,0 +1,47 @@
+package andreasaderi.capstone.entities;
+
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Entity
+@Table(name = "shopping_list_items")
+@Getter
+@Setter
+@NoArgsConstructor
+public class ShoppingListItem {
+    @Id
+    @GeneratedValue
+    @Setter(AccessLevel.NONE)
+    @Column(nullable = false, name = "shopping_list_item_id")
+    private UUID shoppingListItemId;
+    @ManyToOne
+    @JoinColumn(nullable = false, name = "shopping_list_id")
+    private ShoppingList shoppingList;
+    @ManyToOne
+    @JoinColumn(nullable = false, name = "ingredient_definition_id")
+    private IngredientDefinition ingredientDefinition;
+    @Column(name = "suggested_unit")
+    @Enumerated(EnumType.STRING)
+    private Unit suggestedUnit;
+    @Column(name = "suggested_quantity")
+    private Double suggestedQuantity;
+    @Column(name = "purchased_unit")
+    @Enumerated(EnumType.STRING)
+    private Unit purchasedUnit;
+    @Column(name = "purchased_quantity")
+    private Double purchasedQuantity;
+
+    public ShoppingListItem(ShoppingList shoppingList, IngredientDefinition ingredientDefinition, Double suggestedQuantity, Unit suggestedUnit) {
+        this.shoppingList = shoppingList;
+        this.ingredientDefinition = ingredientDefinition;
+        this.suggestedQuantity = suggestedQuantity;
+        this.suggestedUnit = suggestedUnit;
+        this.purchasedUnit = null;
+        this.purchasedQuantity = null;
+    }
+}
