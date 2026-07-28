@@ -64,13 +64,13 @@ public class User implements UserDetails {
     private List<ShoppingList> shoppingLists = new ArrayList<>();
 
 
-    public User(String username, String email, String password, String firstName, String lastName) {
+    public User(String username, String email, String password, String firstName, String lastName, String avatar) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.avatar = "https://ui-avatars.com/api/?name=" + firstName + "+" + lastName;
+        this.avatar = avatar;
         this.role = Role.USER;
     }
 
