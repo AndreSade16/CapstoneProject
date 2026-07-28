@@ -9,7 +9,7 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "recipe_items")
+@Table(name = "recipe_ingredients")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,8 +17,8 @@ public class RecipeIngredient {
     @Id
     @GeneratedValue
     @Setter(AccessLevel.NONE)
-    @Column(nullable = false, name = "recipe_item_id")
-    private UUID recipeItemId;
+    @Column(nullable = false, name = "recipe_ingredient_id")
+    private UUID recipeIngredientId;
     @ManyToOne
     @JoinColumn(nullable = false, name = "recipe_id")
     private Recipe recipe;
