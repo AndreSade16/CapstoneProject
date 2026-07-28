@@ -27,7 +27,7 @@ public class ShoppingList {
     private LocalDate createdAt;
     @Column(nullable = false, name = "updated_at")
     private LocalDate updatedAt;
-    @Column(nullable = false)
+    @Column(nullable = false, name = "shopping_list_status")
     @Enumerated(EnumType.STRING)
     private ShoppingListStatus shoppingListStatus;
 
