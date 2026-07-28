@@ -45,6 +45,7 @@ public class User implements UserDetails {
     private String avatar;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     public User(String username, String email, String password, String firstName, String lastName) {
