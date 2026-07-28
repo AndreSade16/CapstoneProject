@@ -32,11 +32,12 @@ public class JWTTools {
         try {
             Jwts.parser().verifyWith(Keys.hmacShaKeyFor(secret.getBytes())).build().parse(token);
         } catch (Exception ex) {
-            throw new UnauthorizedException("Ci sono problemi con il token, rifare il login!");
+            throw new UnauthorizedException("Error with token, try a new login");
         }
     }
 
     public UUID extractIdFromToken(String token) {
         return UUID.fromString(Jwts.parser().verifyWith(Keys.hmacShaKeyFor(secret.getBytes())).build().parseSignedClaims(token).getPayload().getSubject());
     }
+
 }
