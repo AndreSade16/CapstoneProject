@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -73,5 +74,9 @@ public class UserService {
 
     public User findByEmail(@NotBlank(message = "Email can't be blank") @Email String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User with email '" + email + "' not found"));
+    }
+
+    public User findById(UUID userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found"));
     }
 }
