@@ -5,6 +5,7 @@ import andreasaderi.capstone.exceptions.FileNotAllowedException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.UserRepository;
 import andreasaderi.capstone.requestDTOs.UserDTO;
+import andreasaderi.capstone.tools.EmailSender;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,11 +22,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final Cloudinary fileUploader;
     private final PasswordEncoder bcrypt;
+    private final EmailSender mailgun;
 
-    public UserService(UserRepository userRepository, Cloudinary fileUploader, PasswordEncoder bcrypt) {
+    public UserService(UserRepository userRepository, Cloudinary fileUploader, PasswordEncoder bcrypt, EmailSender mailgun) {
         this.userRepository = userRepository;
         this.fileUploader = fileUploader;
         this.bcrypt = bcrypt;
+        this.mailgun = mailgun;
     }
 
     public User register(UserDTO body, MultipartFile profileImage) {
@@ -57,7 +60,11 @@ public class UserService {
 
         }
 
-        return userRepository.save(new User(body.username(), body.email(), bcrypt.encode(body.password()), body.firstName(), body.lastName(), imageUrl));
+        User newUser = userRepository.save(new User(body.username(), body.email(), bcrypt.encode(body.password()), body.firstName(), body.lastName(), imageUrl));
+
+        mailgun.sendCustomRegistrationEmail(newUser);
+        
+        return newUser;
 
     }
 }
