@@ -47,7 +47,7 @@ public class Recipe {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<RecipeItem> ingredients = new ArrayList<>();
+    private List<RecipeIngredient> ingredients = new ArrayList<>();
 
     public Recipe(String name, String description, String imageUrl, double preparationTime, double cookingTime, RecipeDifficulty difficulty, RecipeCost cost, String procedure) {
         this.name = name;

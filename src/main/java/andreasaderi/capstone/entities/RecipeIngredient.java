@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class RecipeItem {
+public class RecipeIngredient {
     @Id
     @GeneratedValue
     @Setter(AccessLevel.NONE)
@@ -31,7 +31,7 @@ public class RecipeItem {
     @Enumerated(EnumType.STRING)
     private Unit unit;
 
-    public RecipeItem(Recipe recipe, IngredientDefinition ingredientDefinition, double quantityPerPerson, Unit unit) {
+    public RecipeIngredient(Recipe recipe, IngredientDefinition ingredientDefinition, double quantityPerPerson, Unit unit) {
         this.recipe = recipe;
         this.ingredientDefinition = ingredientDefinition;
         this.quantityPerPerson = quantityPerPerson;
