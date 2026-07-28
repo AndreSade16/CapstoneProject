@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -39,6 +41,13 @@ public class Recipe {
     private String procedure;
     @Column(nullable = false, name = "visits_count")
     private long visitsCount;
+
+    @OneToMany(
+            mappedBy = "recipe",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<RecipeItem> ingredients = new ArrayList<>();
 
     public Recipe(String name, String description, String imageUrl, double preparationTime, double cookingTime, RecipeDifficulty difficulty, RecipeCost cost, String procedure) {
         this.name = name;
