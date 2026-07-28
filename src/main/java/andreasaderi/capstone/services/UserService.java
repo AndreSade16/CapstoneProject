@@ -2,12 +2,15 @@ package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.FileNotAllowedException;
+import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.UserRepository;
 import andreasaderi.capstone.requestDTOs.UserDTO;
 import andreasaderi.capstone.tools.EmailSender;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,8 +66,12 @@ public class UserService {
         User newUser = userRepository.save(new User(body.username(), body.email(), bcrypt.encode(body.password()), body.firstName(), body.lastName(), imageUrl));
 
         mailgun.sendCustomRegistrationEmail(newUser);
-        
+
         return newUser;
 
+    }
+
+    public User findByEmail(@NotBlank(message = "Email can't be blank") @Email String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User with email '" + email + "' not found"));
     }
 }

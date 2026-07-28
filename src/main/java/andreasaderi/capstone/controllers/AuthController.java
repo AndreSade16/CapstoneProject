@@ -2,7 +2,9 @@ package andreasaderi.capstone.controllers;
 
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.ValidationException;
+import andreasaderi.capstone.requestDTOs.LoginDTO;
 import andreasaderi.capstone.requestDTOs.UserDTO;
+import andreasaderi.capstone.responseDTOs.LoginResponseDTO;
 import andreasaderi.capstone.responseDTOs.UserRegistrationResponseDTO;
 import andreasaderi.capstone.services.AuthService;
 import andreasaderi.capstone.services.UserService;
@@ -39,5 +41,16 @@ public class AuthController {
         User saved = userService.register(body, profileImage);
 
         return new UserRegistrationResponseDTO(saved.getUserId());
+    }
+
+    @PostMapping("/login")
+    public LoginResponseDTO login(@RequestBody @Validated LoginDTO body, BindingResult validationResult) {
+        if (validationResult.hasErrors()) {
+            List<String> errorsList = validationResult.getFieldErrors().stream()
+                    .map(fieldError -> fieldError.getDefaultMessage())
+                    .toList();
+            throw new ValidationException(errorsList);
+        }
+        return new LoginResponseDTO(authService.checkCredentialsAndGenerateToken(body));
     }
 }
