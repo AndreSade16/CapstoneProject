@@ -1,6 +1,7 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.*;
+import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.IngredientDefinitionRepository;
 import andreasaderi.capstone.requestDTOs.IngredientDefinitionDTO;
@@ -14,7 +15,9 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -108,6 +111,14 @@ public class IngredientDefinitionServiceTest {
 
         // Has .save() method of ingredietDefinitionRepository been called in vain? We hope not!
         verify(ingredientDefinitionRepository, never()).save(any());
+    }
+
+    @Test
+    void findByIdShouldThrowNotFoundExceptionWhenIdDoesNotExist() {
+        UUID randomId = UUID.randomUUID();
+        when(ingredientDefinitionRepository.findById(randomId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> ingredientDefinitionService.findById(randomId));
     }
 
 }
