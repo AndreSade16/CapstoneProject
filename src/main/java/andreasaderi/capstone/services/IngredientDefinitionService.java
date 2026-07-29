@@ -2,6 +2,7 @@ package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.IngredientDefinition;
 import andreasaderi.capstone.exceptions.FileNotAllowedException;
+import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.IngredientDefinitionRepository;
 import andreasaderi.capstone.requestDTOs.IngredientDefinitionDTO;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class IngredientDefinitionService {
@@ -51,5 +53,9 @@ public class IngredientDefinitionService {
             }
         }
         return ingredientDefinitionRepository.save(new IngredientDefinition(body.name(), body.description(), imageUrl, body.category(), body.quantityType(), body.defaultStorageLocation(), body.shelfLifeDays(), body.alternativeUsages(), body.seasonality()));
+    }
+
+    public IngredientDefinition findById(UUID ingredientDefinitionId) {
+        return ingredientDefinitionRepository.findById(ingredientDefinitionId).orElseThrow(() -> new NotFoundException("Ingredient definition with ID '" + ingredientDefinitionId + "' not found"));
     }
 }
