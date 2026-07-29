@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface IngredientDefinitionRepository extends JpaRepository<IngredientDefinition, UUID>, JpaSpecificationExecutor<IngredientDefinition> {
 
+    boolean existsByName(String name);
 }

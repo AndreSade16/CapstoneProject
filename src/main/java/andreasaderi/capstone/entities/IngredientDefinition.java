@@ -38,7 +38,7 @@ public class IngredientDefinition {
     private StorageLocation defaultStorageLocation;
     @Column(nullable = false, name = "shelf_life_days")
     private int shelfLifeDays;
-    @Column(nullable = false, name = "alternative_usages")
+    @Column(name = "alternative_usages")
     private String alternativeUsages;
     @Column(nullable = false)
     @ElementCollection
