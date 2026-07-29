@@ -11,5 +11,5 @@ import java.util.UUID;
 
 @Repository
 public interface ShoppingListRepository extends JpaRepository<ShoppingList, UUID>, JpaSpecificationExecutor<ShoppingList> {
-    boolean existsByUserAndStatus(User user, ShoppingListStatus status);
+    boolean existsByUserAndShoppingListStatus(User user, ShoppingListStatus shoppingListStatus);
 }

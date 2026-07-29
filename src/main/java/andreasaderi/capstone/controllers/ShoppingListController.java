@@ -2,14 +2,15 @@ package andreasaderi.capstone.controllers;
 
 import andreasaderi.capstone.entities.ShoppingList;
 import andreasaderi.capstone.entities.User;
+import andreasaderi.capstone.requestDTOs.CompleteShoppingListDTO;
 import andreasaderi.capstone.responseDTOs.ShoppingListCreatedDTO;
 import andreasaderi.capstone.services.ShoppingListService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/shopping-lists")
@@ -29,5 +30,12 @@ public class ShoppingListController {
         return new ShoppingListCreatedDTO(saved.getShoppingListId());
     }
 
-    
+    @PostMapping("/{id}/complete")
+    public ShoppingList completeShoppingList(
+            @PathVariable UUID id,
+            @Valid @RequestBody CompleteShoppingListDTO body,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        return shoppingListService.completeShoppingList(id, body, authenticatedUser);
+    }
 }
