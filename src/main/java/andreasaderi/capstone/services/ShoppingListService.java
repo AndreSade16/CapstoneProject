@@ -40,6 +40,14 @@ public class ShoppingListService {
         return shoppingListRepository.findById(shoppingListId).orElseThrow(() -> new NotFoundException("Shopping list with ID '" + shoppingListId + "' not found"));
     }
 
+    public ShoppingList findByIdAndUser(UUID shoppingListId, User user) {
+        ShoppingList found = findById(shoppingListId);
+        if (!found.getUser().getUserId().equals(user.getUserId()))
+            throw new ConflictException("This shopping list doesn't belong to this user");
+
+        return found;
+    }
+
     //    After some research, I decided to add this "rollbackFor", so that even if in the future I'd add some code that throws an Exception that's not a Runtime one, I'd be covered anyway.
     @Transactional(rollbackFor = Exception.class)
     public ShoppingList completeShoppingList(UUID id, CompleteShoppingListDTO body, User authenticatedUser) {
@@ -55,7 +63,7 @@ public class ShoppingListService {
                     purchasedItem,
                     authenticatedUser
             );
-            shoppingListItemService.setAsBought(item, purchasedItem.purchasedUnit(), purchasedItem.purchasedQuantity());
+            shoppingListItemService.setAsBought(item, purchasedItem.purchasedQuantity());
         }
         currentShoppingList.setShoppingListStatus(ShoppingListStatus.COMPLETED);
         return shoppingListRepository.save(currentShoppingList);

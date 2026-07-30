@@ -52,7 +52,7 @@ public class IngredientDefinitionService {
                 throw new RuntimeException(e);
             }
         }
-        return ingredientDefinitionRepository.save(new IngredientDefinition(body.name(), body.description(), imageUrl, body.category(), body.quantityType(), body.defaultStorageLocation(), body.shelfLifeDays(), body.alternativeUsages(), body.seasonality()));
+        return ingredientDefinitionRepository.save(new IngredientDefinition(body.name(), body.description(), imageUrl, body.category(), body.unit(), body.defaultStorageLocation(), body.shelfLifeDays(), body.alternativeUsages(), body.seasonality()));
     }
 
     public IngredientDefinition findById(UUID ingredientDefinitionId) {

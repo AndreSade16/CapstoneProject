@@ -3,6 +3,7 @@ package andreasaderi.capstone.controllers;
 import andreasaderi.capstone.entities.ShoppingList;
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.requestDTOs.CompleteShoppingListDTO;
+import andreasaderi.capstone.responseDTOs.ShoppingListCompletedDTO;
 import andreasaderi.capstone.responseDTOs.ShoppingListCreatedDTO;
 import andreasaderi.capstone.services.ShoppingListService;
 import jakarta.validation.Valid;
@@ -31,11 +32,12 @@ public class ShoppingListController {
     }
 
     @PostMapping("/{id}/complete")
-    public ShoppingList completeShoppingList(
+    public ShoppingListCompletedDTO completeShoppingList(
             @PathVariable UUID id,
             @Valid @RequestBody CompleteShoppingListDTO body,
             @AuthenticationPrincipal User authenticatedUser
     ) {
-        return shoppingListService.completeShoppingList(id, body, authenticatedUser);
+        ShoppingList saved = shoppingListService.completeShoppingList(id, body, authenticatedUser);
+        return new ShoppingListCompletedDTO(saved.getShoppingListId(), saved.getShoppingListStatus());
     }
 }

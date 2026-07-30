@@ -41,7 +41,7 @@ public class IngredientDefinitionServiceTest {
                 "Tomato",
                 "Fresh tomato description",
                 Category.VEGETABLE,
-                QuantityType.WEIGHT,
+                Unit.GRAMS,
                 StorageLocation.PANTRY,
                 7,
                 "Sauces",
@@ -54,7 +54,7 @@ public class IngredientDefinitionServiceTest {
                 dto.description(),
                 "fake-img-url",
                 dto.category(),
-                dto.quantityType(),
+                dto.unit(),
                 dto.defaultStorageLocation(),
                 dto.shelfLifeDays(),
                 dto.alternativeUsages(),
@@ -98,7 +98,7 @@ public class IngredientDefinitionServiceTest {
     @Test
     void saveShouldThrowBadRequestExceptionWhenIngredientAlreadyExists() {
         IngredientDefinitionDTO dto = new IngredientDefinitionDTO(
-                "Tomato", "Description...", Category.VEGETABLE, QuantityType.WEIGHT,
+                "Tomato", "Description...", Category.VEGETABLE, Unit.GRAMS,
                 StorageLocation.PANTRY, 7, null, Set.of(Season.SUMMER)
         );
         MockMultipartFile image = new MockMultipartFile("image", "t.jpg", "image/jpeg", new byte[0]);

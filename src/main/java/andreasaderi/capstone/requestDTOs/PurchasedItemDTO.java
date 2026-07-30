@@ -1,7 +1,6 @@
 package andreasaderi.capstone.requestDTOs;
 
 import andreasaderi.capstone.entities.StorageLocation;
-import andreasaderi.capstone.entities.Unit;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -15,8 +14,6 @@ public record PurchasedItemDTO(
         @NotNull
         @Positive(message = "Purchased quantity must be a positive number")
         Double purchasedQuantity,
-        @NotNull(message = "Purchased unit can't be null")
-        Unit purchasedUnit,
         @NotNull
         @Future(message = "Expiration date must be yet to come")
         LocalDate expirationDate,

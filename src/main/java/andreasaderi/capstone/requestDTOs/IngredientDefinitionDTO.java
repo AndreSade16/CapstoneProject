@@ -1,9 +1,9 @@
 package andreasaderi.capstone.requestDTOs;
 
 import andreasaderi.capstone.entities.Category;
-import andreasaderi.capstone.entities.QuantityType;
 import andreasaderi.capstone.entities.Season;
 import andreasaderi.capstone.entities.StorageLocation;
+import andreasaderi.capstone.entities.Unit;
 import jakarta.validation.constraints.*;
 
 import java.util.Set;
@@ -17,8 +17,8 @@ public record IngredientDefinitionDTO(
         String description,
         @NotNull(message = "Category field must be filled.")
         Category category,
-        @NotNull(message = "Quantity type field must be filled.")
-        QuantityType quantityType,
+        @NotNull(message = "Unit type field must be filled.")
+        Unit unit,
         @NotNull(message = "Default storage location field must be filled.")
         StorageLocation defaultStorageLocation,
         @Positive(message = "Shelf life days must be a positive number")
