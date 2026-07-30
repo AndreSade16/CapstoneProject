@@ -6,11 +6,19 @@ import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.UserRepository;
 import andreasaderi.capstone.requestDTOs.UserDTO;
+import andreasaderi.capstone.requestDTOs.UserFiltersDTO;
+import andreasaderi.capstone.specifications.UserSpecification;
 import andreasaderi.capstone.tools.EmailSender;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,12 +35,14 @@ public class UserService {
     private final Cloudinary fileUploader;
     private final PasswordEncoder bcrypt;
     private final EmailSender mailgun;
+    private final UserSpecification userSpecification;
 
-    public UserService(UserRepository userRepository, Cloudinary fileUploader, PasswordEncoder bcrypt, EmailSender mailgun) {
+    public UserService(UserRepository userRepository, Cloudinary fileUploader, PasswordEncoder bcrypt, EmailSender mailgun, UserSpecification userSpecification) {
         this.userRepository = userRepository;
         this.fileUploader = fileUploader;
         this.bcrypt = bcrypt;
         this.mailgun = mailgun;
+        this.userSpecification = userSpecification;
     }
 
     public User register(UserDTO body, MultipartFile profileImage) {
@@ -78,5 +88,20 @@ public class UserService {
 
     public User findById(UUID userId) {
         return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found"));
+    }
+
+    public Page<User> findAll(int page, int size, String sortBy, Sort.Direction direction, @Valid UserFiltersDTO filters) {
+        if (size <= 0) size = 10;
+        if (size > 20) size = 20;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Specification<User> spec = userSpecification.specificationUserBuilder(filters);
+
+        if (spec == null) {
+            return userRepository.findAll(pageable);
+        }
+
+        return userRepository.findAll(spec, pageable);
     }
 }
