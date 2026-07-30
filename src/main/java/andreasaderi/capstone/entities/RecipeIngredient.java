@@ -27,14 +27,11 @@ public class RecipeIngredient {
     private IngredientDefinition ingredientDefinition;
     @Column(nullable = false, name = "quantity_per_person")
     private double quantityPerPerson;
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Unit unit;
 
-    public RecipeIngredient(Recipe recipe, IngredientDefinition ingredientDefinition, double quantityPerPerson, Unit unit) {
+
+    public RecipeIngredient(Recipe recipe, IngredientDefinition ingredientDefinition, double quantityPerPerson) {
         this.recipe = recipe;
         this.ingredientDefinition = ingredientDefinition;
         this.quantityPerPerson = quantityPerPerson;
-        this.unit = unit;
     }
 }

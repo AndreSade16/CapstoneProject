@@ -2,6 +2,7 @@ package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.Recipe;
 import andreasaderi.capstone.exceptions.FileNotAllowedException;
+import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class RecipeService {
@@ -52,6 +54,10 @@ public class RecipeService {
 
 
         return recipeRepository.save(new Recipe(body.name(), body.description(), imageUrl, body.preparationTime(), body.cookingTime(), body.difficulty(), body.cost(), body.procedure()));
+    }
+
+    public Recipe findById(UUID recipeId) {
+        return recipeRepository.findById(recipeId).orElseThrow(() -> new NotFoundException("Recipe with id '" + recipeId + "' not found"));
     }
 }
 
