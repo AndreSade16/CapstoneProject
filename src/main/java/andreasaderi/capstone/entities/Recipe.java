@@ -21,7 +21,7 @@ public class Recipe {
     @Setter(AccessLevel.NONE)
     @Column(nullable = false, name = "recipe_id")
     private UUID recipeId;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
     @Column(nullable = false)
     private String description;

@@ -10,23 +10,28 @@ import andreasaderi.capstone.requestDTOs.PurchasedItemDTO;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 public class PantryItemService {
 
     private final PantryItemRepository pantryItemRepository;
     private final IngredientDefinitionService ingredientDefinitionService;
-    private final ShoppingListItemService shoppingListItemService;
 
-    public PantryItemService(PantryItemRepository pantryItemRepository, IngredientDefinitionService ingredientDefinitionService, ShoppingListItemService shoppingListItemService) {
+    public PantryItemService(PantryItemRepository pantryItemRepository, IngredientDefinitionService ingredientDefinitionService) {
         this.pantryItemRepository = pantryItemRepository;
         this.ingredientDefinitionService = ingredientDefinitionService;
-        this.shoppingListItemService = shoppingListItemService;
     }
 
     public PantryItem save(PantryItemDTO body, User user) {
 
         IngredientDefinition ingredientDefinition = ingredientDefinitionService.findById(body.ingredientDefinitionId());
+        Optional<PantryItem> mayBePresent = pantryItemRepository.findByIngredientDefinitionAndPurchaseDateAndExpirationDateAndStorageLocationAndUser(ingredientDefinition, body.purchaseDate(), body.expirationDate(), body.storageLocation(), user);
+        if (mayBePresent.isPresent()) {
+            PantryItem alreadyThere = mayBePresent.get();
+            alreadyThere.setQuantity(alreadyThere.getQuantity() + body.quantity());
+            return pantryItemRepository.save(alreadyThere);
+        }
 
         return pantryItemRepository.save(new PantryItem(user, ingredientDefinition, body.quantity(), body.purchaseDate(), body.expirationDate(), body.storageLocation()));
     }
