@@ -45,4 +45,9 @@ public class RecipeIngredientController {
     public List<RecipeIngredient> findRecipeIngrediens(@PathVariable UUID recipeId) {
         return recipeIngredientService.findRecipeIngredients(recipeId);
     }
+
+    @PutMapping("/{recipeId}/ingredients/{recipeIngredientId}")
+    public RecipeIngredient updateRecipeIngredientById(@PathVariable UUID recipeId, @PathVariable UUID recipeIngredientId, @RequestBody RecipeIngredientDTO body) {
+        return recipeIngredientService.updateRecipeIngredientById(recipeId, recipeIngredientId, body);
+    }
 }

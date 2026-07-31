@@ -3,6 +3,8 @@ package andreasaderi.capstone.services;
 import andreasaderi.capstone.entities.IngredientDefinition;
 import andreasaderi.capstone.entities.Recipe;
 import andreasaderi.capstone.entities.RecipeIngredient;
+import andreasaderi.capstone.exceptions.ConflictException;
+import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.RecipeIngredientRepository;
 import andreasaderi.capstone.requestDTOs.RecipeIngredientDTO;
@@ -37,5 +39,30 @@ public class RecipeIngredientService {
     public List<RecipeIngredient> findRecipeIngredients(UUID recipeId) {
         Recipe recipe = recipeService.findById(recipeId);
         return recipeIngredientRepository.findByRecipe(recipe);
+    }
+
+    public RecipeIngredient updateRecipeIngredientById(UUID recipeId, UUID recipeIngredientId, RecipeIngredientDTO body) {
+        Recipe recipe = recipeService.findById(recipeId);
+        RecipeIngredient recipeIngredient = findById(recipeIngredientId);
+
+        if (!recipeIngredient.getRecipe().getRecipeId().equals(recipe.getRecipeId()))
+            throw new ConflictException("Recipe ingredient " + recipeIngredient.getIngredientDefinition().getName() + " doesn't belong to recipe " + recipe.getName());
+        if (recipeIngredient.getIngredientDefinition().getIngredientDefinitionId().equals(body.ingredientDefinitionId()) && recipeIngredient.getQuantityPerPerson() == body.quantityPerPerson())
+            throw new RecordAlreadyExistsException("This ingredient is already present in this exact quantity in this recipe");
+
+        IngredientDefinition newIngredientDefinition = ingredientDefinitionService.findById(body.ingredientDefinitionId());
+
+        if (!recipeIngredient.getIngredientDefinition().getIngredientDefinitionId().equals(newIngredientDefinition.getIngredientDefinitionId()) && recipeIngredientRepository.existsByRecipeAndIngredientDefinition(recipe, newIngredientDefinition))
+            throw new RecordAlreadyExistsException("Recipe " + recipe.getName() + " already has " + newIngredientDefinition.getName() + " as it's ingredient");
+
+        recipeIngredient.setIngredientDefinition(newIngredientDefinition);
+        recipeIngredient.setQuantityPerPerson(body.quantityPerPerson());
+
+        return recipeIngredientRepository.save(recipeIngredient);
+
+    }
+
+    private RecipeIngredient findById(UUID recipeIngredientId) {
+        return recipeIngredientRepository.findById(recipeIngredientId).orElseThrow(() -> new NotFoundException("Recipe ingredient with id '" + recipeIngredientId + "' not found"));
     }
 }
