@@ -3,9 +3,13 @@ package andreasaderi.capstone.controllers;
 import andreasaderi.capstone.entities.IngredientDefinition;
 import andreasaderi.capstone.exceptions.ValidationException;
 import andreasaderi.capstone.requestDTOs.IngredientDefinitionDTO;
+import andreasaderi.capstone.requestDTOs.IngredientDefinitionFiltersDTO;
 import andreasaderi.capstone.responseDTOs.IngredientDefinitionCreatedDTO;
 import andreasaderi.capstone.services.IngredientDefinitionService;
+import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -37,5 +41,10 @@ public class IngredientDefinitionController {
         IngredientDefinition saved = ingredientDefinitionService.save(body, ingredientImage);
 
         return new IngredientDefinitionCreatedDTO(saved.getIngredientDefinitionId());
+    }
+
+    @GetMapping
+    public Page<IngredientDefinition> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "category") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute IngredientDefinitionFiltersDTO filters) {
+        return ingredientDefinitionService.findAll(page, size, sortBy, direction, filters);
     }
 }

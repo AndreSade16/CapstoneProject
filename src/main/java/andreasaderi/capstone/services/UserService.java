@@ -98,9 +98,6 @@ public class UserService {
 
         Specification<User> spec = userSpecification.specificationUserBuilder(filters);
 
-        if (spec == null) {
-            return userRepository.findAll(pageable);
-        }
 
         return userRepository.findAll(spec, pageable);
     }
