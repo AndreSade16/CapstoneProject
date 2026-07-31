@@ -43,4 +43,14 @@ public class RecipeController {
     public Recipe findById(@PathVariable UUID recipeId) {
         return recipeService.findById(recipeId);
     }
+
+    @GetMapping("/{recipeId}/visit")
+    public Recipe visitRecipeById(@PathVariable UUID recipeId) {
+        return recipeService.findByIdAndIncrementVisits(recipeId);
+    }
+
+    @PutMapping("/{recipeId}")
+    public Recipe updateById(@PathVariable UUID recipeId, @ModelAttribute @Validated RecipeDTO body, @RequestPart(value = "recipeImage", required = false) MultipartFile recipeImage) {
+        return recipeService.updateById(recipeId, body, recipeImage);
+    }
 }

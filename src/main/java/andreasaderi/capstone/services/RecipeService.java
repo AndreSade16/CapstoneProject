@@ -1,56 +1,30 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.Recipe;
-import andreasaderi.capstone.exceptions.FileNotAllowedException;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class RecipeService {
 
-    public final RecipeRepository recipeRepository;
-    public final Cloudinary fileUploader;
+    private final RecipeRepository recipeRepository;
+    private final CloudinaryService cloudinaryService;
 
-    public RecipeService(RecipeRepository recipeRepository, Cloudinary fileUploader) {
+    public RecipeService(RecipeRepository recipeRepository, CloudinaryService cloudinaryService) {
         this.recipeRepository = recipeRepository;
-        this.fileUploader = fileUploader;
+        this.cloudinaryService = cloudinaryService;
     }
 
     public Recipe save(RecipeDTO body, MultipartFile recipeImage) {
         if (recipeRepository.existsByName(body.name()))
             throw new RecordAlreadyExistsException("A recipe named '" + body.name() + "' already exists");
-        String imageUrl;
-
-        if (recipeImage.isEmpty()) {
-
-            throw new FileNotAllowedException("You cannot upload a new ingredient without an image");
-
-        } else {
-
-            if (recipeImage.getSize() >= 10485760)
-                throw new FileNotAllowedException("File size can't be more than 10MB");
-            if (!(Objects.equals(recipeImage.getContentType(), "image/jpeg") || Objects.equals(recipeImage.getContentType(), "image/gif") || Objects.equals(recipeImage.getContentType(), "image/png") || Objects.equals(recipeImage.getContentType(), "image/webp")))
-                throw new FileNotAllowedException("File must be an img");
-
-
-            try {
-                Map result = fileUploader.uploader().upload(recipeImage.getBytes(), ObjectUtils.emptyMap());
-                imageUrl = (String) result.get("secure_url");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        String imageUrl = cloudinaryService.uploadValidatedImageAndGetUrl(recipeImage);
 
 
         return recipeRepository.save(new Recipe(body.name(), body.description(), imageUrl, body.preparationTime(), body.cookingTime(), body.difficulty(), body.cost(), body.procedure()));
@@ -58,6 +32,40 @@ public class RecipeService {
 
     public Recipe findById(UUID recipeId) {
         return recipeRepository.findById(recipeId).orElseThrow(() -> new NotFoundException("Recipe with id '" + recipeId + "' not found"));
+    }
+
+    public Recipe updateById(UUID recipeId, RecipeDTO body, MultipartFile recipeImage) {
+        Recipe recipe = findById(recipeId);
+
+        if (!recipe.getName().equalsIgnoreCase(body.name())
+                && recipeRepository.existsByName(body.name())) {
+            throw new RecordAlreadyExistsException("Recipe named '" + body.name() + "' already exists");
+        }
+
+        if (recipeImage != null && !recipeImage.isEmpty()) {
+
+            String imageUrl = cloudinaryService.uploadValidatedImageAndGetUrl(recipeImage);
+
+            recipe.setImageUrl(imageUrl);
+        }
+
+        recipe.setName(body.name());
+        recipe.setDescription(body.description());
+        recipe.setPreparationTime(body.preparationTime());
+        recipe.setCookingTime(body.cookingTime());
+        recipe.setDifficulty(body.difficulty());
+        recipe.setCost(body.cost());
+        recipe.setProcedure(body.procedure());
+
+        return recipeRepository.save(recipe);
+    }
+
+    public Recipe findByIdAndIncrementVisits(UUID id) {
+        Recipe recipe = findById(id);
+
+        recipe.setVisitsCount(recipe.getVisitsCount() + 1);
+
+        return recipeRepository.save(recipe);
     }
 }
 
