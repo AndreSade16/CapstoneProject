@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -31,6 +30,9 @@ public class IngredientDefinitionServiceTest {
     @Mock
     private Cloudinary fileUploader;
 
+    @Mock
+    private CloudinaryService cloudinaryService;
+
     @InjectMocks
     private IngredientDefinitionService ingredientDefinitionService;
 
@@ -38,55 +40,26 @@ public class IngredientDefinitionServiceTest {
     void saveShouldReturnSavedIngredientWhenDTOIsValid() throws IOException {
 
         IngredientDefinitionDTO dto = new IngredientDefinitionDTO(
-                "Tomato",
-                "Fresh tomato description",
-                Category.VEGETABLE,
-                Unit.GRAMS,
-                StorageLocation.PANTRY,
-                7,
-                "Sauces",
-                Set.of(Season.SUMMER)
+                "Tomato", "Fresh tomato description", Category.VEGETABLE, Unit.GRAMS,
+                StorageLocation.PANTRY, 7, "Sauces", Set.of(Season.SUMMER)
         );
-
 
         IngredientDefinition savedEntity = new IngredientDefinition(
-                dto.name(),
-                dto.description(),
-                "fake-img-url",
-                dto.category(),
-                dto.unit(),
-                dto.defaultStorageLocation(),
-                dto.shelfLifeDays(),
-                dto.alternativeUsages(),
-                dto.seasonality()
+                dto.name(), dto.description(), "fake-img-url", dto.category(),
+                dto.unit(), dto.defaultStorageLocation(), dto.shelfLifeDays(),
+                dto.alternativeUsages(), dto.seasonality()
         );
 
-//        MultiPartFile MOCK to avoid NullPointerException
         MockMultipartFile image = new MockMultipartFile(
-                "image",
-                "tomato.jpg",
-                "image/jpeg",
-                "fake-image-bytes".getBytes()
+                "image", "tomato.jpg", "image/jpeg", "fake-image-bytes".getBytes()
         );
 
-//        Cloudinary upload() method returns an Uploader class instance, so we have to mock it too...
-        com.cloudinary.Uploader uploaderMock = mock(com.cloudinary.Uploader.class);
-
-//        ...And make the uploader return it when called!
-        when(fileUploader.uploader()).thenReturn(uploaderMock);
-
-//        So when upload() is called with any file in it, we make it return KV pair "secure_url" - "fake_img_url".
-        when(uploaderMock.upload(any(), anyMap()))
-                .thenReturn(Map.of("secure_url", "fake-img-url"));
-//        We make it so that this ingredient name isn't already in the DB
+        when(cloudinaryService.uploadValidatedImageAndGetUrl(image)).thenReturn("fake-img-url"); // adatta al nome/firma reale del metodo
         when(ingredientDefinitionRepository.existsByName(dto.name())).thenReturn(false);
-//        And if we save any IngredientDefinition on the DB, we get back savedEntity
         when(ingredientDefinitionRepository.save(any(IngredientDefinition.class))).thenReturn(savedEntity);
 
-        // Act
         IngredientDefinition result = ingredientDefinitionService.save(dto, image);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Tomato", result.getName());
         assertEquals(Category.VEGETABLE, result.getCategory());
