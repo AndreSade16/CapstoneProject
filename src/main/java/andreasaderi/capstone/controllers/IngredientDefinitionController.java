@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/ingredients")
@@ -46,5 +47,10 @@ public class IngredientDefinitionController {
     @GetMapping
     public Page<IngredientDefinition> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "category") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute IngredientDefinitionFiltersDTO filters) {
         return ingredientDefinitionService.findAll(page, size, sortBy, direction, filters);
+    }
+
+    @GetMapping("/{ingredientDefinitionId}")
+    public IngredientDefinition findById(@PathVariable UUID ingredientDefinitionId){
+        return ingredientDefinitionService.findById(ingredientDefinitionId);
     }
 }

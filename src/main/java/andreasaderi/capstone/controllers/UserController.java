@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -22,5 +24,10 @@ public class UserController {
     @GetMapping
     public Page<User> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "username") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute UserFiltersDTO filters) {
         return userService.findAll(page, size, sortBy, direction, filters);
+    }
+
+    @GetMapping("/{UserId}")
+    public User findById(@PathVariable UUID UserId) {
+        return userService.findById(UserId);
     }
 }

@@ -20,7 +20,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@JsonIgnoreProperties({"password", "enabled", "accountNonExpired", "accountNonLocked"})
+@JsonIgnoreProperties({"password", "enabled", "accountNonExpired", "accountNonLocked", "shoppingLists"})
 public class User implements UserDetails {
     @Id
     @GeneratedValue

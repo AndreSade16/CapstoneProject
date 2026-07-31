@@ -39,6 +39,5 @@ public class RecipeIngredientController {
         RecipeIngredient saved = recipeIngredientService.save(body, recipeId);
 
         return new RecipeIngredientCreatedDTO(saved.getRecipeIngredientId());
-
     }
 }

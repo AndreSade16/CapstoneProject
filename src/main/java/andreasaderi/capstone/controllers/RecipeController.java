@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/recipes")
@@ -36,5 +37,10 @@ public class RecipeController {
         }
         Recipe saved = recipeService.save(body, recipeImage);
         return new RecipeCreatedDTO(saved.getRecipeId());
+    }
+
+    @GetMapping("/{recipeId}")
+    public Recipe findById(@PathVariable UUID recipeId) {
+        return recipeService.findById(recipeId);
     }
 }

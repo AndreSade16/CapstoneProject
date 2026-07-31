@@ -40,4 +40,9 @@ public class ShoppingListController {
         ShoppingList saved = shoppingListService.completeShoppingList(id, body, authenticatedUser);
         return new ShoppingListCompletedDTO(saved.getShoppingListId(), saved.getShoppingListStatus());
     }
+
+    @GetMapping("/{ShoppingListId}")
+    public ShoppingList findById(@PathVariable UUID ShoppingListId) {
+        return shoppingListService.findById(ShoppingListId);
+    }
 }
