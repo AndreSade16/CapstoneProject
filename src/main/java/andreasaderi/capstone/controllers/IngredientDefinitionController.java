@@ -50,7 +50,19 @@ public class IngredientDefinitionController {
     }
 
     @GetMapping("/{ingredientDefinitionId}")
-    public IngredientDefinition findById(@PathVariable UUID ingredientDefinitionId){
+    public IngredientDefinition findById(@PathVariable UUID ingredientDefinitionId) {
         return ingredientDefinitionService.findById(ingredientDefinitionId);
+    }
+
+    @PutMapping("/{ingredientDefinitionId}")
+    public IngredientDefinition updateById(@PathVariable UUID ingredientDefinitionId, @ModelAttribute @Validated IngredientDefinitionDTO body, @RequestPart(value = "ingredientImage", required = false) MultipartFile ingredientImage, BindingResult validationResult) {
+        if (validationResult.hasErrors()) {
+            List<String> errorsList = validationResult.getFieldErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .toList();
+            throw new ValidationException(errorsList);
+        }
+        return ingredientDefinitionService.updateById(ingredientDefinitionId, body, ingredientImage);
+
     }
 }
