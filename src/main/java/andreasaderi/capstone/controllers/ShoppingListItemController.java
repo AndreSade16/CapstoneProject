@@ -47,4 +47,24 @@ public class ShoppingListItemController {
 
         return new ShoppingListItemCreatedDTO(saved.getShoppingListItemId());
     }
+
+    @GetMapping("me/{shoppingListId}/items")
+    public List<ShoppingListItem> findItemsByShoppingList(@PathVariable UUID shoppingListId, @AuthenticationPrincipal User authenticatedUser) {
+        ShoppingList shoppingList = shoppingListService.findByIdAndUser(shoppingListId, authenticatedUser);
+        return shoppingListItemService.findByShoppingList(shoppingList);
+    }
+
+    @PutMapping("/{shoppingListId}/items/{shoppingListItemId}")
+    public ShoppingListItem updateById(@AuthenticationPrincipal User authenticatedUser, @PathVariable UUID shoppingListId, @PathVariable UUID shoppingListItemId, @RequestBody @Validated ShoppingListItemDTO body, BindingResult validationResult) {
+        if (validationResult.hasErrors()) {
+            List<String> errorsList = validationResult.getFieldErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .toList();
+            throw new ValidationException(errorsList);
+        }
+
+        ShoppingList shoppingList = shoppingListService.findByIdAndUser(shoppingListId, authenticatedUser);
+
+        return shoppingListItemService.updateById(authenticatedUser, shoppingList, shoppingListItemId, body);
+    }
 }

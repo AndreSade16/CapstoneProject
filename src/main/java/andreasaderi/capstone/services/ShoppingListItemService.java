@@ -1,17 +1,16 @@
 package andreasaderi.capstone.services;
 
-import andreasaderi.capstone.entities.IngredientDefinition;
-import andreasaderi.capstone.entities.ShoppingList;
-import andreasaderi.capstone.entities.ShoppingListItem;
-import andreasaderi.capstone.entities.ShoppingListStatus;
+import andreasaderi.capstone.entities.*;
 import andreasaderi.capstone.exceptions.ConflictException;
 import andreasaderi.capstone.exceptions.NotFoundException;
+import andreasaderi.capstone.exceptions.UnauthorizedException;
 import andreasaderi.capstone.repositories.ShoppingListItemRepository;
 import andreasaderi.capstone.requestDTOs.ShoppingListItemDTO;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -83,5 +82,29 @@ public class ShoppingListItemService {
         }
 
         return item;
+    }
+
+    public ShoppingListItem updateById(User authenticatedUser, ShoppingList shoppingList, UUID shoppingListItemId, ShoppingListItemDTO body) {
+        if (!shoppingList.getUser().getUserId().equals(authenticatedUser.getUserId()))
+            throw new UnauthorizedException("You don't have the permissions to edit this item");
+        ShoppingListItem shoppingListItem = findByIdAndShoppingList(shoppingListItemId, shoppingList);
+        IngredientDefinition newIngredient = ingredientDefinitionService.findById(body.ingredientDefinitionId());
+        Optional<ShoppingListItem> sameNameItem = shoppingListItemRepository.findByShoppingListAndIngredientDefinition(shoppingList, newIngredient);
+
+        if (sameNameItem.isPresent() && !sameNameItem.get().getShoppingListItemId().equals(shoppingListItem.getShoppingListItemId())) {
+            ShoppingListItem itemAlreadyThere = sameNameItem.get();
+            mergeSuggestedQuantity(itemAlreadyThere, body.suggestedQuantity());
+            shoppingListItemRepository.delete(shoppingListItem);
+            return shoppingListItemRepository.save(itemAlreadyThere);
+        } else {
+            shoppingListItem.setIngredientDefinition(newIngredient);
+            shoppingListItem.setSuggestedQuantity(body.suggestedQuantity());
+            return shoppingListItemRepository.save(shoppingListItem);
+        }
+
+    }
+
+    public List<ShoppingListItem> findByShoppingList(ShoppingList shoppingList) {
+        return shoppingListItemRepository.findByShoppingList(shoppingList);
     }
 }
