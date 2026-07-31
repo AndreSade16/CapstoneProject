@@ -40,4 +40,9 @@ public class RecipeIngredientController {
 
         return new RecipeIngredientCreatedDTO(saved.getRecipeIngredientId());
     }
+
+    @GetMapping("/{recipeId}/ingredients")
+    public List<RecipeIngredient> findRecipeIngrediens(@PathVariable UUID recipeId) {
+        return recipeIngredientService.findRecipeIngredients(recipeId);
+    }
 }

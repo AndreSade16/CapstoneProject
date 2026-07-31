@@ -8,6 +8,7 @@ import andreasaderi.capstone.repositories.RecipeIngredientRepository;
 import andreasaderi.capstone.requestDTOs.RecipeIngredientDTO;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,5 +32,10 @@ public class RecipeIngredientService {
             throw new RecordAlreadyExistsException("Recipe ingredient " + ingredientDefinition.getName() + " already exists in recipe named '" + recipe.getName() + "'. Edit it if you want to change it's quantity per person.");
 
         return recipeIngredientRepository.save(new RecipeIngredient(recipe, ingredientDefinition, body.quantityPerPerson()));
+    }
+
+    public List<RecipeIngredient> findRecipeIngredients(UUID recipeId) {
+        Recipe recipe = recipeService.findById(recipeId);
+        return recipeIngredientRepository.findByRecipe(recipe);
     }
 }
