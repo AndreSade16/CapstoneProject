@@ -3,6 +3,7 @@ package andreasaderi.capstone.controllers;
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.ValidationException;
 import andreasaderi.capstone.requestDTOs.UserFiltersDTO;
+import andreasaderi.capstone.requestDTOs.UserUpdateByAdminDTO;
 import andreasaderi.capstone.requestDTOs.UserUpdateDTO;
 import andreasaderi.capstone.services.UserService;
 import jakarta.validation.Valid;
@@ -47,5 +48,17 @@ public class UserController {
             throw new ValidationException(errorsList);
         }
         return userService.updateOwnData(authenticatedUser, body);
+    }
+
+    @PatchMapping("/{userId}")
+    public User adminUpdateUser(@PathVariable UUID userId, @RequestBody @Validated UserUpdateByAdminDTO body, BindingResult validationResult) {
+        if (validationResult.hasErrors()) {
+            List<String> errorsList = validationResult.getFieldErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .toList();
+            throw new ValidationException(errorsList);
+        }
+
+        return userService.adminUpdateUser(userId, body);
     }
 }

@@ -7,6 +7,7 @@ import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.UserRepository;
 import andreasaderi.capstone.requestDTOs.UserDTO;
 import andreasaderi.capstone.requestDTOs.UserFiltersDTO;
+import andreasaderi.capstone.requestDTOs.UserUpdateByAdminDTO;
 import andreasaderi.capstone.requestDTOs.UserUpdateDTO;
 import andreasaderi.capstone.specifications.UserSpecification;
 import andreasaderi.capstone.tools.EmailSender;
@@ -116,5 +117,25 @@ public class UserService {
         if (body.lastName() != null) authenticatedUser.setLastName(body.lastName());
 
         return userRepository.save(authenticatedUser);
+    }
+
+    public User adminUpdateUser(UUID userId, UserUpdateByAdminDTO body) {
+
+        User user = findById(userId);
+
+        if (body.email() != null && !body.email().equalsIgnoreCase(user.getEmail()) && userRepository.existsByEmail(body.email())) {
+            throw new RecordAlreadyExistsException("Email '" + body.email() + "' is already in use");
+        }
+        if (body.username() != null && !body.username().equalsIgnoreCase(user.getUsername()) && userRepository.existsByUsername(body.username())) {
+            throw new RecordAlreadyExistsException("Username '" + body.username() + "' is already in use");
+        }
+
+        if (body.username() != null) user.setUsername(body.username());
+        if (body.email() != null) user.setEmail(body.email());
+        if (body.password() != null) user.setPassword(bcrypt.encode(body.password()));
+        if (body.firstName() != null) user.setFirstName(body.firstName());
+        if (body.lastName() != null) user.setLastName(body.lastName());
+
+        return userRepository.save(user);
     }
 }
