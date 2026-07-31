@@ -5,6 +5,14 @@ import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
+import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
+import andreasaderi.capstone.specifications.RecipeSpecification;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,10 +22,12 @@ import java.util.UUID;
 public class RecipeService {
 
     private final RecipeRepository recipeRepository;
+    private final RecipeSpecification recipeSpecification;
     private final CloudinaryService cloudinaryService;
 
-    public RecipeService(RecipeRepository recipeRepository, CloudinaryService cloudinaryService) {
+    public RecipeService(RecipeRepository recipeRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService) {
         this.recipeRepository = recipeRepository;
+        this.recipeSpecification = recipeSpecification;
         this.cloudinaryService = cloudinaryService;
     }
 
@@ -66,6 +76,18 @@ public class RecipeService {
         recipe.setVisitsCount(recipe.getVisitsCount() + 1);
 
         return recipeRepository.save(recipe);
+    }
+
+    public Page<Recipe> findAll(int page, int size, String sortBy, Sort.Direction direction, @Valid RecipeFiltersDTO filters) {
+        if (size <= 0) size = 10;
+        if (size > 20) size = 20;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Specification<Recipe> spec = recipeSpecification.specificationRecipeBuilder(filters);
+
+
+        return recipeRepository.findAll(spec, pageable);
     }
 }
 

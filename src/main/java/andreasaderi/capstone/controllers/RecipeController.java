@@ -3,9 +3,13 @@ package andreasaderi.capstone.controllers;
 import andreasaderi.capstone.entities.Recipe;
 import andreasaderi.capstone.exceptions.ValidationException;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
+import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
 import andreasaderi.capstone.responseDTOs.RecipeCreatedDTO;
 import andreasaderi.capstone.services.RecipeService;
+import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +41,11 @@ public class RecipeController {
         }
         Recipe saved = recipeService.save(body, recipeImage);
         return new RecipeCreatedDTO(saved.getRecipeId());
+    }
+
+    @GetMapping
+    public Page<Recipe> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "visitsCount") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute RecipeFiltersDTO filters) {
+        return recipeService.findAll(page, size, sortBy, direction, filters);
     }
 
     @GetMapping("/{recipeId}")

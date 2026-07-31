@@ -1,5 +1,6 @@
 package andreasaderi.capstone.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonIgnoreProperties({"recipe"})
 public class RecipeIngredient {
     @Id
     @GeneratedValue
