@@ -7,6 +7,7 @@ import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.UserRepository;
 import andreasaderi.capstone.requestDTOs.UserDTO;
 import andreasaderi.capstone.requestDTOs.UserFiltersDTO;
+import andreasaderi.capstone.requestDTOs.UserUpdateDTO;
 import andreasaderi.capstone.specifications.UserSpecification;
 import andreasaderi.capstone.tools.EmailSender;
 import com.cloudinary.Cloudinary;
@@ -100,5 +101,20 @@ public class UserService {
 
 
         return userRepository.findAll(spec, pageable);
+    }
+
+    public User updateOwnData(User authenticatedUser, UserUpdateDTO body) {
+        if (body.email() != null && !body.email().equalsIgnoreCase(authenticatedUser.getEmail()) && userRepository.existsByEmail(body.email())) {
+            throw new RecordAlreadyExistsException("Email '" + body.email() + "' is already in use");
+        }
+        if (body.username() != null && !body.username().equalsIgnoreCase(authenticatedUser.getUsername()) && userRepository.existsByUsername(body.username())) {
+            throw new RecordAlreadyExistsException("Username '" + body.username() + "' is already in use");
+        }
+        if (body.username() != null) authenticatedUser.setUsername(body.username());
+        if (body.email() != null) authenticatedUser.setEmail(body.email());
+        if (body.firstName() != null) authenticatedUser.setFirstName(body.firstName());
+        if (body.lastName() != null) authenticatedUser.setLastName(body.lastName());
+
+        return userRepository.save(authenticatedUser);
     }
 }

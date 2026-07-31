@@ -54,7 +54,7 @@ public class ShoppingListItemController {
         return shoppingListItemService.findByShoppingList(shoppingList);
     }
 
-    @PutMapping("/{shoppingListId}/items/{shoppingListItemId}")
+    @PatchMapping("/{shoppingListId}/items/{shoppingListItemId}")
     public ShoppingListItem updateById(@AuthenticationPrincipal User authenticatedUser, @PathVariable UUID shoppingListId, @PathVariable UUID shoppingListItemId, @RequestBody @Validated ShoppingListItemDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
