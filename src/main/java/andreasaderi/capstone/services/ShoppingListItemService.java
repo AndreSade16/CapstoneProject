@@ -107,4 +107,10 @@ public class ShoppingListItemService {
     public List<ShoppingListItem> findByShoppingList(ShoppingList shoppingList) {
         return shoppingListItemRepository.findByShoppingList(shoppingList);
     }
+
+    public void delete(ShoppingList shoppingList, UUID shoppingListItemId) {
+        ShoppingListItem shoppingListItem = findByIdAndShoppingList(shoppingListItemId, shoppingList);
+
+        shoppingListItemRepository.delete(shoppingListItem);
+    }
 }

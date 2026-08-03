@@ -2,16 +2,14 @@ package andreasaderi.capstone.controllers;
 
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.ValidationException;
-import andreasaderi.capstone.requestDTOs.UserFiltersDTO;
-import andreasaderi.capstone.requestDTOs.UserPasswordUpdateDTO;
-import andreasaderi.capstone.requestDTOs.UserUpdateByAdminDTO;
-import andreasaderi.capstone.requestDTOs.UserUpdateDTO;
+import andreasaderi.capstone.requestDTOs.*;
 import andreasaderi.capstone.services.AuthService;
 import andreasaderi.capstone.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -80,5 +78,17 @@ public class UserController {
     @PatchMapping("/me/avatar")
     public User updateOwnAvatar(@AuthenticationPrincipal User user, @RequestParam("avatar") MultipartFile profileImage) {
         return userService.updateOwnAvatar(user, profileImage);
+    }
+
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOwnProfile(@AuthenticationPrincipal User user, @RequestBody LoginDTO body) {
+        userService.deleteOwnProfile(user, body);
+    }
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProfileById(@PathVariable UUID userId) {
+        userService.deleteProfileById(userId);
     }
 }

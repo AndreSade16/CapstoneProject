@@ -4,11 +4,9 @@ import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.FileNotAllowedException;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
+import andreasaderi.capstone.exceptions.UnauthorizedException;
 import andreasaderi.capstone.repositories.UserRepository;
-import andreasaderi.capstone.requestDTOs.UserDTO;
-import andreasaderi.capstone.requestDTOs.UserFiltersDTO;
-import andreasaderi.capstone.requestDTOs.UserUpdateByAdminDTO;
-import andreasaderi.capstone.requestDTOs.UserUpdateDTO;
+import andreasaderi.capstone.requestDTOs.*;
 import andreasaderi.capstone.specifications.UserSpecification;
 import andreasaderi.capstone.tools.EmailSender;
 import jakarta.validation.Valid;
@@ -133,5 +131,17 @@ public class UserService {
         user.setAvatar(cloudinaryService.uploadValidatedImageAndGetUrl(profileImage));
 
         return userRepository.save(user);
+    }
+
+    public void deleteOwnProfile(User user, LoginDTO body) {
+        if (!bcrypt.matches(body.password(), user.getPassword()) || !user.getEmail().equals(body.email()))
+            throw new UnauthorizedException("Wrong credentials");
+        userRepository.delete(user);
+    }
+
+    public void deleteProfileById(UUID userId) {
+        User user = findById(userId);
+
+        userRepository.delete(user);
     }
 }

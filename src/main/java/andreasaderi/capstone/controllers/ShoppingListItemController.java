@@ -72,4 +72,11 @@ public class ShoppingListItemController {
 
         return shoppingListItemService.updateById(authenticatedUser, shoppingList, shoppingListItemId, body);
     }
+
+    @DeleteMapping("me/{shoppingListId}/items/{shoppingListItemId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOwnItemById(@PathVariable UUID shoppingListId, @PathVariable UUID shoppingListItemId, @AuthenticationPrincipal User user) {
+        ShoppingList shoppingList = shoppingListService.findByIdAndUser(shoppingListId, user);
+        shoppingListItemService.delete(shoppingList, shoppingListItemId);
+    }
 }
