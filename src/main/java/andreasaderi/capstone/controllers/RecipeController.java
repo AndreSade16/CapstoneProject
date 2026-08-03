@@ -62,4 +62,10 @@ public class RecipeController {
     public Recipe updateById(@PathVariable UUID recipeId, @ModelAttribute @Validated RecipeDTO body, @RequestPart(value = "recipeImage", required = false) MultipartFile recipeImage) {
         return recipeService.updateById(recipeId, body, recipeImage);
     }
+
+    @DeleteMapping("/{recipeId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteById(@PathVariable UUID recipeId) {
+        recipeService.delete(recipeId);
+    }
 }

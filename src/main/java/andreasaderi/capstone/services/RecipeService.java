@@ -89,5 +89,10 @@ public class RecipeService {
 
         return recipeRepository.findAll(spec, pageable);
     }
+
+    public void delete(UUID recipeId) {
+        Recipe recipe = findById(recipeId);
+        recipeRepository.delete(recipe);
+    }
 }
 
