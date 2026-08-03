@@ -7,8 +7,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +20,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@JsonIgnoreProperties({"password", "enabled", "accountNonExpired", "accountNonLocked"})
+@JsonIgnoreProperties({"password", "enabled", "accountNonExpired", "accountNonLocked", "shoppingLists"})
 public class User implements UserDetails {
     @Id
     @GeneratedValue
@@ -48,18 +50,35 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    public User(String username, String email, String password, String firstName, String lastName) {
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<PantryItem> pantryItems = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ShoppingList> shoppingLists = new ArrayList<>();
+
+
+    public User(String username, String email, String password, String firstName, String lastName, String avatar) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.avatar = "https://ui-avatars.com/api/?name=" + firstName + "+" + lastName;
+        this.avatar = avatar;
         this.role = Role.USER;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(
+                new SimpleGrantedAuthority(this.role.name())
+        );
     }
 }

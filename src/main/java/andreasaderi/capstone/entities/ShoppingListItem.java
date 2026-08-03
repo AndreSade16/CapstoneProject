@@ -1,5 +1,6 @@
 package andreasaderi.capstone.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -9,10 +10,13 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "shopping_list_items")
+//Aggiunge il constraint di UNIQUE in maniera tale che ci sia solo un ingrediente con lo stesso nome per lista della spesa
+@Table(name = "shopping_list_items", uniqueConstraints = @UniqueConstraint(columnNames = {"shopping_list_id", "ingredient_definition_id"}
+))
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonIgnoreProperties({"shoppingList"})
 public class ShoppingListItem {
     @Id
     @GeneratedValue
@@ -30,9 +34,6 @@ public class ShoppingListItem {
     private Unit suggestedUnit;
     @Column(name = "suggested_quantity")
     private Double suggestedQuantity;
-    @Column(name = "purchased_unit")
-    @Enumerated(EnumType.STRING)
-    private Unit purchasedUnit;
     @Column(name = "purchased_quantity")
     private Double purchasedQuantity;
 
@@ -41,7 +42,6 @@ public class ShoppingListItem {
         this.ingredientDefinition = ingredientDefinition;
         this.suggestedQuantity = suggestedQuantity;
         this.suggestedUnit = suggestedUnit;
-        this.purchasedUnit = null;
         this.purchasedQuantity = null;
     }
 }

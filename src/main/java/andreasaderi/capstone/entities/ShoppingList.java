@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -30,6 +32,13 @@ public class ShoppingList {
     @Column(nullable = false, name = "shopping_list_status")
     @Enumerated(EnumType.STRING)
     private ShoppingListStatus shoppingListStatus;
+
+    @OneToMany(
+            mappedBy = "shoppingList",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ShoppingListItem> items = new ArrayList<>();
 
     public ShoppingList(User user) {
         this.user = user;

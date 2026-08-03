@@ -32,25 +32,25 @@ public class IngredientDefinition {
     private Category category;
     @Column(nullable = false, name = "quantity_type")
     @Enumerated(EnumType.STRING)
-    private QuantityType quantityType;
+    private Unit unit;
     @Column(nullable = false, name = "default_storage_location")
     @Enumerated(EnumType.STRING)
     private StorageLocation defaultStorageLocation;
     @Column(nullable = false, name = "shelf_life_days")
     private int shelfLifeDays;
-    @Column(nullable = false, name = "alternative_usages")
+    @Column(name = "alternative_usages")
     private String alternativeUsages;
     @Column(nullable = false)
     @ElementCollection
     @Enumerated(EnumType.STRING)
     private Set<Season> seasonality = new HashSet<>();
 
-    public IngredientDefinition(String name, String description, String imageUrl, Category category, QuantityType quantityType, StorageLocation defaultStorageLocation, int shelfLifeDays, String alternativeUsages, Set<Season> seasonality) {
+    public IngredientDefinition(String name, String description, String imageUrl, Category category, Unit unit, StorageLocation defaultStorageLocation, int shelfLifeDays, String alternativeUsages, Set<Season> seasonality) {
         this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
         this.category = category;
-        this.quantityType = quantityType;
+        this.unit = unit;
         this.defaultStorageLocation = defaultStorageLocation;
         this.shelfLifeDays = shelfLifeDays;
         this.alternativeUsages = alternativeUsages;
