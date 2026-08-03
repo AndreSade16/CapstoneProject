@@ -7,9 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface ShoppingListRepository extends JpaRepository<ShoppingList, UUID>, JpaSpecificationExecutor<ShoppingList> {
     boolean existsByUserAndShoppingListStatus(User user, ShoppingListStatus shoppingListStatus);
+
+    Optional<ShoppingList> findByUserAndShoppingListStatus(User user, ShoppingListStatus shoppingListStatus);
 }

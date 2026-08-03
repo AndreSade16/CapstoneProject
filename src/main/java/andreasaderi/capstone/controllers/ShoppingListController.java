@@ -5,6 +5,7 @@ import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.requestDTOs.CompleteShoppingListDTO;
 import andreasaderi.capstone.responseDTOs.ShoppingListCompletedDTO;
 import andreasaderi.capstone.responseDTOs.ShoppingListCreatedDTO;
+import andreasaderi.capstone.responseDTOs.ShoppingListResponseDTO;
 import andreasaderi.capstone.services.ShoppingListService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -44,5 +45,11 @@ public class ShoppingListController {
     @GetMapping("/{ShoppingListId}")
     public ShoppingList findById(@PathVariable UUID ShoppingListId) {
         return shoppingListService.findById(ShoppingListId);
+    }
+
+    @GetMapping("/me")
+    public ShoppingListResponseDTO findActiveShoppingList(@AuthenticationPrincipal User user) {
+        ShoppingList shoppingList = shoppingListService.findByUserAndActive(user);
+        return new ShoppingListResponseDTO(shoppingList.getShoppingListId(), shoppingList.getCreatedAt(), shoppingList.getUpdatedAt(), shoppingList.getShoppingListStatus(), shoppingList.getItems().stream().toList());
     }
 }

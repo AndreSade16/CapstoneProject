@@ -36,7 +36,7 @@ public class ShoppingListService {
         return shoppingListRepository.save(new ShoppingList(authenticatedUser));
     }
 
-    public void saveShoppingListUpdates(ShoppingList shoppingList){
+    public void saveShoppingListUpdates(ShoppingList shoppingList) {
         shoppingListRepository.save(shoppingList);
     }
 
@@ -72,4 +72,9 @@ public class ShoppingListService {
         currentShoppingList.setShoppingListStatus(ShoppingListStatus.COMPLETED);
         return shoppingListRepository.save(currentShoppingList);
     }
+
+    public ShoppingList findByUserAndActive(User user) {
+        return shoppingListRepository.findByUserAndShoppingListStatus(user, ShoppingListStatus.ACTIVE).orElseThrow(() -> new NotFoundException("No active shopping list found for user " + user.getUsername()));
+    }
+
 }
