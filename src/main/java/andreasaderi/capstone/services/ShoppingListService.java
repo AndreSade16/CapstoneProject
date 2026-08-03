@@ -36,6 +36,10 @@ public class ShoppingListService {
         return shoppingListRepository.save(new ShoppingList(authenticatedUser));
     }
 
+    public void saveShoppingListUpdates(ShoppingList shoppingList){
+        shoppingListRepository.save(shoppingList);
+    }
+
     public ShoppingList findById(UUID shoppingListId) {
         return shoppingListRepository.findById(shoppingListId).orElseThrow(() -> new NotFoundException("Shopping list with ID '" + shoppingListId + "' not found"));
     }
