@@ -7,6 +7,7 @@ import andreasaderi.capstone.responseDTOs.RecipeIngredientCreatedDTO;
 import andreasaderi.capstone.services.RecipeIngredientService;
 import andreasaderi.capstone.services.RecipeService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -49,5 +50,11 @@ public class RecipeIngredientController {
     @PutMapping("/{recipeId}/ingredients/{recipeIngredientId}")
     public RecipeIngredient updateRecipeIngredientById(@PathVariable UUID recipeId, @PathVariable UUID recipeIngredientId, @RequestBody RecipeIngredientDTO body) {
         return recipeIngredientService.updateRecipeIngredientById(recipeId, recipeIngredientId, body);
+    }
+
+    @DeleteMapping("/{recipeId}/ingredients/{recipeIngredientId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteById(@PathVariable UUID recipeId, @PathVariable UUID recipeIngredientId) {
+        recipeIngredientService.delete(recipeId, recipeIngredientId);
     }
 }

@@ -77,4 +77,9 @@ public class ShoppingListService {
         return shoppingListRepository.findByUserAndShoppingListStatus(user, ShoppingListStatus.ACTIVE).orElseThrow(() -> new NotFoundException("No active shopping list found for user " + user.getUsername()));
     }
 
+    public void deleteOwnShoppingList(UUID shoppingListId, User user) {
+        ShoppingList shoppingList = findByIdAndUser(shoppingListId, user);
+
+        shoppingListRepository.delete(shoppingList);
+    }
 }

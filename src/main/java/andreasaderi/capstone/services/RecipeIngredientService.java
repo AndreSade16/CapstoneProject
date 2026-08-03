@@ -65,4 +65,13 @@ public class RecipeIngredientService {
     private RecipeIngredient findById(UUID recipeIngredientId) {
         return recipeIngredientRepository.findById(recipeIngredientId).orElseThrow(() -> new NotFoundException("Recipe ingredient with id '" + recipeIngredientId + "' not found"));
     }
+
+    public void delete(UUID recipeId, UUID recipeIngredientId) {
+        RecipeIngredient recipeIngredient = findById(recipeIngredientId);
+        Recipe recipe = recipeService.findById(recipeId);
+        if (!recipeIngredient.getRecipe().getRecipeId().equals(recipe.getRecipeId()))
+            throw new ConflictException("Ingredient " + recipeIngredient.getIngredientDefinition().getName() + " doesn't belong to recipe " + recipe.getName());
+
+        recipeIngredientRepository.delete(recipeIngredient);
+    }
 }

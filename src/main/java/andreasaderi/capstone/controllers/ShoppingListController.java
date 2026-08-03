@@ -52,4 +52,10 @@ public class ShoppingListController {
         ShoppingList shoppingList = shoppingListService.findByUserAndActive(user);
         return new ShoppingListResponseDTO(shoppingList.getShoppingListId(), shoppingList.getCreatedAt(), shoppingList.getUpdatedAt(), shoppingList.getShoppingListStatus(), shoppingList.getItems().stream().toList());
     }
+
+    @DeleteMapping("/me/{shoppingListId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOwnShoppingList(@PathVariable UUID shoppingListId, @AuthenticationPrincipal User user) {
+        shoppingListService.deleteOwnShoppingList(shoppingListId, user);
+    }
 }
