@@ -1,6 +1,7 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.User;
+import andreasaderi.capstone.exceptions.FileNotAllowedException;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.UserRepository;
@@ -122,6 +123,15 @@ public class UserService {
     }
 
     public User update(User user) {
+        return userRepository.save(user);
+    }
+
+    public User updateOwnAvatar(User user, MultipartFile profileImage) {
+
+        if (profileImage.isEmpty()) throw new FileNotAllowedException("New profile image can't be empty");
+
+        user.setAvatar(cloudinaryService.uploadValidatedImageAndGetUrl(profileImage));
+
         return userRepository.save(user);
     }
 }

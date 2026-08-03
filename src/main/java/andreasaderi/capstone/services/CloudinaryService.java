@@ -20,24 +20,24 @@ public class CloudinaryService {
         this.fileUploader = fileUploader;
     }
 
-    public String uploadValidatedImageAndGetUrl(MultipartFile ingredientImage) {
+    public String uploadValidatedImageAndGetUrl(MultipartFile image) {
 
         String imageUrl;
 
-        if (ingredientImage == null || ingredientImage.isEmpty()) {
+        if (image == null || image.isEmpty()) {
 
-            throw new FileNotAllowedException("You cannot upload a new ingredient without an image");
+            throw new FileNotAllowedException("You cannot upload an empty file");
 
         }
 
-        if (ingredientImage.getSize() >= 10485760)
+        if (image.getSize() >= 10485760)
             throw new FileNotAllowedException("File size can't be more than 10MB");
-        if (!(Objects.equals(ingredientImage.getContentType(), "image/jpeg") || Objects.equals(ingredientImage.getContentType(), "image/gif") || Objects.equals(ingredientImage.getContentType(), "image/png") || Objects.equals(ingredientImage.getContentType(), "image/webp")))
+        if (!(Objects.equals(image.getContentType(), "image/jpeg") || Objects.equals(image.getContentType(), "image/gif") || Objects.equals(image.getContentType(), "image/png") || Objects.equals(image.getContentType(), "image/webp")))
             throw new FileNotAllowedException("File must be an img");
 
 
         try {
-            Map result = fileUploader.uploader().upload(ingredientImage.getBytes(), ObjectUtils.emptyMap());
+            Map result = fileUploader.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
             imageUrl = (String) result.get("secure_url");
         } catch (IOException e) {
             throw new FileUploadException(e.getMessage());

@@ -30,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserRegistrationResponseDTO registerUser(@ModelAttribute @Validated UserDTO body, @RequestPart(value = "profileImage", required = false) MultipartFile profileImage, BindingResult validationResult) {
+    public UserRegistrationResponseDTO registerUser(@ModelAttribute @Validated UserDTO body, @RequestPart(value = "avatar", required = false) MultipartFile profileImage, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())

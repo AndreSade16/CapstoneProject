@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -74,5 +75,10 @@ public class UserController {
     @PatchMapping("/me/password")
     public User updateOwnPassword(@AuthenticationPrincipal User user, @RequestBody @Validated UserPasswordUpdateDTO body) {
         return authService.updatePassword(user, body);
+    }
+
+    @PatchMapping("/me/avatar")
+    public User updateOwnAvatar(@AuthenticationPrincipal User user, @RequestParam("avatar") MultipartFile profileImage) {
+        return userService.updateOwnAvatar(user, profileImage);
     }
 }
