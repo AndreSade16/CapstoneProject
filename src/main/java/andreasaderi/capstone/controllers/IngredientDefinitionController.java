@@ -65,4 +65,10 @@ public class IngredientDefinitionController {
         return ingredientDefinitionService.updateById(ingredientDefinitionId, body, ingredientImage);
 
     }
+
+    @DeleteMapping("/{ingredientDefinitionId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteById(@PathVariable UUID ingredientDefinitionId) {
+        ingredientDefinitionService.delete(ingredientDefinitionId);
+    }
 }

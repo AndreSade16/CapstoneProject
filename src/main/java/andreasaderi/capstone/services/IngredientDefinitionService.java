@@ -87,5 +87,9 @@ public class IngredientDefinitionService {
 
     }
 
+    public void delete(UUID ingredientDefinitionId) {
+        IngredientDefinition ingredientDefinition = findById(ingredientDefinitionId);
+        ingredientDefinitionRepository.delete(ingredientDefinition);
+    }
 }
 
