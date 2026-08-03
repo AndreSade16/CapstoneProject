@@ -44,6 +44,8 @@ public class ShoppingListItemController {
         }
 
         ShoppingList shoppingList = shoppingListService.findByIdAndUser(shoppingListId, authenticatedUser);
+        shoppingList.setUpdatedAt(LocalDate.now());
+        shoppingListService.saveShoppingListUpdates(shoppingList);
         ShoppingListItem saved = shoppingListItemService.save(shoppingList, body);
 
         return new ShoppingListItemCreatedDTO(saved.getShoppingListItemId());
