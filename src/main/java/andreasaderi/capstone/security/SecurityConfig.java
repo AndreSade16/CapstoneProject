@@ -23,7 +23,7 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private String frontendUrl;
+    private final String frontendUrl;
 
     public SecurityConfig(@Value("${frontend.url}") String frontendUrl) {
         this.frontendUrl = frontendUrl;
