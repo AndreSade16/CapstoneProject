@@ -10,6 +10,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -33,21 +34,25 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public Page<User> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "username") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute UserFiltersDTO filters) {
         return userService.findAll(page, size, sortBy, direction, filters);
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public User findOwnProfile(@AuthenticationPrincipal User user) {
         return userService.findById(user.getUserId());
     }
 
     @GetMapping("/{UserId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public User findById(@PathVariable UUID UserId) {
         return userService.findById(UserId);
     }
 
     @PatchMapping("/me")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public User updateOwnData(@AuthenticationPrincipal User authenticatedUser, @RequestBody @Validated UserUpdateDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
@@ -59,6 +64,7 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public User adminUpdateUser(@PathVariable UUID userId, @RequestBody @Validated UserUpdateByAdminDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
@@ -71,23 +77,27 @@ public class UserController {
     }
 
     @PatchMapping("/me/password")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public User updateOwnPassword(@AuthenticationPrincipal User user, @RequestBody @Validated UserPasswordUpdateDTO body) {
         return authService.updatePassword(user, body);
     }
 
     @PatchMapping("/me/avatar")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public User updateOwnAvatar(@AuthenticationPrincipal User user, @RequestParam("avatar") MultipartFile profileImage) {
         return userService.updateOwnAvatar(user, profileImage);
     }
 
     @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public void deleteOwnProfile(@AuthenticationPrincipal User user, @RequestBody LoginDTO body) {
         userService.deleteOwnProfile(user, body);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public void deleteProfileById(@PathVariable UUID userId) {
         userService.deleteProfileById(userId);
     }

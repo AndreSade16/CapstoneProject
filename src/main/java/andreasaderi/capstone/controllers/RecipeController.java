@@ -11,6 +11,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ public class RecipeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public RecipeCreatedDTO createRecipe(@RequestPart(value = "recipeImage") MultipartFile recipeImage, @ModelAttribute @Validated RecipeDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
@@ -44,27 +46,32 @@ public class RecipeController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public Page<Recipe> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "visitsCount") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute RecipeFiltersDTO filters) {
         return recipeService.findAll(page, size, sortBy, direction, filters);
     }
 
     @GetMapping("/{recipeId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public Recipe findById(@PathVariable UUID recipeId) {
         return recipeService.findById(recipeId);
     }
 
     @GetMapping("/{recipeId}/visit")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public Recipe visitRecipeById(@PathVariable UUID recipeId) {
         return recipeService.findByIdAndIncrementVisits(recipeId);
     }
 
     @PutMapping("/{recipeId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public Recipe updateById(@PathVariable UUID recipeId, @ModelAttribute @Validated RecipeDTO body, @RequestPart(value = "recipeImage", required = false) MultipartFile recipeImage) {
         return recipeService.updateById(recipeId, body, recipeImage);
     }
 
     @DeleteMapping("/{recipeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public void deleteById(@PathVariable UUID recipeId) {
         recipeService.delete(recipeId);
     }

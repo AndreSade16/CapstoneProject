@@ -9,6 +9,7 @@ import andreasaderi.capstone.responseDTOs.ShoppingListResponseDTO;
 import andreasaderi.capstone.services.ShoppingListService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,12 +28,14 @@ public class ShoppingListController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ShoppingListCreatedDTO createShoppingList(@AuthenticationPrincipal User authenticatedUser) {
         ShoppingList saved = shoppingListService.save(authenticatedUser);
         return new ShoppingListCreatedDTO(saved.getShoppingListId());
     }
 
     @PostMapping("/{id}/complete")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ShoppingListCompletedDTO completeShoppingList(
             @PathVariable UUID id,
             @Valid @RequestBody CompleteShoppingListDTO body,
@@ -43,11 +46,13 @@ public class ShoppingListController {
     }
 
     @GetMapping("/{ShoppingListId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ShoppingList findById(@PathVariable UUID ShoppingListId) {
         return shoppingListService.findById(ShoppingListId);
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ShoppingListResponseDTO findActiveShoppingList(@AuthenticationPrincipal User user) {
         ShoppingList shoppingList = shoppingListService.findByUserAndActive(user);
         return new ShoppingListResponseDTO(shoppingList.getShoppingListId(), shoppingList.getCreatedAt(), shoppingList.getUpdatedAt(), shoppingList.getShoppingListStatus(), shoppingList.getItems().stream().toList());
@@ -55,6 +60,7 @@ public class ShoppingListController {
 
     @DeleteMapping("/me/{shoppingListId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public void deleteOwnShoppingList(@PathVariable UUID shoppingListId, @AuthenticationPrincipal User user) {
         shoppingListService.deleteOwnShoppingList(shoppingListId, user);
     }

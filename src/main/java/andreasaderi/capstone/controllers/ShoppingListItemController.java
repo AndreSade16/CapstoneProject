@@ -10,6 +10,7 @@ import andreasaderi.capstone.services.ShoppingListItemService;
 import andreasaderi.capstone.services.ShoppingListService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -33,8 +34,9 @@ public class ShoppingListItemController {
     }
 
 
-    @PostMapping("/{shoppingListId}/items")
+    @PostMapping("me/{shoppingListId}/items")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ShoppingListItemCreatedDTO createShoppingListItem(@PathVariable UUID shoppingListId, @RequestBody @Validated ShoppingListItemDTO body, @AuthenticationPrincipal User authenticatedUser, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
@@ -52,12 +54,14 @@ public class ShoppingListItemController {
     }
 
     @GetMapping("me/{shoppingListId}/items")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public List<ShoppingListItem> findItemsByShoppingList(@PathVariable UUID shoppingListId, @AuthenticationPrincipal User authenticatedUser) {
         ShoppingList shoppingList = shoppingListService.findByIdAndUser(shoppingListId, authenticatedUser);
         return shoppingListItemService.findByShoppingList(shoppingList);
     }
 
-    @PatchMapping("/{shoppingListId}/items/{shoppingListItemId}")
+    @PatchMapping("me/{shoppingListId}/items/{shoppingListItemId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ShoppingListItem updateById(@AuthenticationPrincipal User authenticatedUser, @PathVariable UUID shoppingListId, @PathVariable UUID shoppingListItemId, @RequestBody @Validated ShoppingListItemDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
@@ -75,6 +79,7 @@ public class ShoppingListItemController {
 
     @DeleteMapping("me/{shoppingListId}/items/{shoppingListItemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public void deleteOwnItemById(@PathVariable UUID shoppingListId, @PathVariable UUID shoppingListItemId, @AuthenticationPrincipal User user) {
         ShoppingList shoppingList = shoppingListService.findByIdAndUser(shoppingListId, user);
         shoppingListItemService.delete(shoppingList, shoppingListItemId);
