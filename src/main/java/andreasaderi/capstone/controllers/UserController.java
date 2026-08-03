@@ -3,8 +3,10 @@ package andreasaderi.capstone.controllers;
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.ValidationException;
 import andreasaderi.capstone.requestDTOs.UserFiltersDTO;
+import andreasaderi.capstone.requestDTOs.UserPasswordUpdateDTO;
 import andreasaderi.capstone.requestDTOs.UserUpdateByAdminDTO;
 import andreasaderi.capstone.requestDTOs.UserUpdateDTO;
+import andreasaderi.capstone.services.AuthService;
 import andreasaderi.capstone.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -23,15 +25,22 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService authService;
 
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, AuthService authService) {
         this.userService = userService;
+        this.authService = authService;
     }
 
     @GetMapping
     public Page<User> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "username") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute UserFiltersDTO filters) {
         return userService.findAll(page, size, sortBy, direction, filters);
+    }
+
+    @GetMapping("/me")
+    public User findOwnProfile(@AuthenticationPrincipal User user) {
+        return userService.findById(user.getUserId());
     }
 
     @GetMapping("/{UserId}")
@@ -60,5 +69,10 @@ public class UserController {
         }
 
         return userService.adminUpdateUser(userId, body);
+    }
+
+    @PatchMapping("/me/password")
+    public User updateOwnPassword(@AuthenticationPrincipal User user, @RequestBody @Validated UserPasswordUpdateDTO body) {
+        return authService.updatePassword(user, body);
     }
 }

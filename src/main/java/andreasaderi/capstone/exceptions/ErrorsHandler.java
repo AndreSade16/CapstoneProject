@@ -51,6 +51,12 @@ public class ErrorsHandler {
         return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
     }
 
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorsDTO handleConflictException(ConflictException e) {
+        return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
+    }
+
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorsDTO handlePropertyReferenceException(PropertyReferenceException e) {

@@ -1,7 +1,6 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.User;
-import andreasaderi.capstone.exceptions.FileNotAllowedException;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.UserRepository;
@@ -11,8 +10,6 @@ import andreasaderi.capstone.requestDTOs.UserUpdateByAdminDTO;
 import andreasaderi.capstone.requestDTOs.UserUpdateDTO;
 import andreasaderi.capstone.specifications.UserSpecification;
 import andreasaderi.capstone.tools.EmailSender;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -25,23 +22,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-    private final Cloudinary fileUploader;
     private final PasswordEncoder bcrypt;
     private final EmailSender mailgun;
     private final UserSpecification userSpecification;
+    private final CloudinaryService cloudinaryService;
 
-    public UserService(UserRepository userRepository, Cloudinary fileUploader, PasswordEncoder bcrypt, EmailSender mailgun, UserSpecification userSpecification) {
+    public UserService(UserRepository userRepository, PasswordEncoder bcrypt, EmailSender mailgun, UserSpecification userSpecification, CloudinaryService cloudinaryService) {
         this.userRepository = userRepository;
-        this.fileUploader = fileUploader;
+        this.cloudinaryService = cloudinaryService;
         this.bcrypt = bcrypt;
         this.mailgun = mailgun;
         this.userSpecification = userSpecification;
@@ -55,25 +49,13 @@ public class UserService {
 
         String imageUrl;
 
-        if (profileImage.isEmpty()) {
+        if (profileImage == null || profileImage.isEmpty()) {
 
             imageUrl = "https://ui-avatars.com/api/?name=" + body.firstName() + "+" + body.lastName();
 
         } else {
 
-            if (profileImage.getSize() >= 10485760)
-                throw new FileNotAllowedException("File size can't be more than 10MB");
-            if (!(Objects.equals(profileImage.getContentType(), "image/jpeg") || Objects.equals(profileImage.getContentType(), "image/gif") || Objects.equals(profileImage.getContentType(), "image/png") || Objects.equals(profileImage.getContentType(), "image/webp")))
-                throw new FileNotAllowedException("File must be an img");
-
-
-            try {
-                Map result = fileUploader.uploader().upload(profileImage.getBytes(), ObjectUtils.emptyMap());
-                imageUrl = (String) result.get("secure_url");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
+            imageUrl = cloudinaryService.uploadValidatedImageAndGetUrl(profileImage);
         }
 
         User newUser = userRepository.save(new User(body.username(), body.email(), bcrypt.encode(body.password()), body.firstName(), body.lastName(), imageUrl));
@@ -136,6 +118,10 @@ public class UserService {
         if (body.firstName() != null) user.setFirstName(body.firstName());
         if (body.lastName() != null) user.setLastName(body.lastName());
 
+        return userRepository.save(user);
+    }
+
+    public User update(User user) {
         return userRepository.save(user);
     }
 }

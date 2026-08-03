@@ -1,8 +1,10 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.User;
+import andreasaderi.capstone.exceptions.ConflictException;
 import andreasaderi.capstone.exceptions.UnauthorizedException;
 import andreasaderi.capstone.requestDTOs.LoginDTO;
+import andreasaderi.capstone.requestDTOs.UserPasswordUpdateDTO;
 import andreasaderi.capstone.security.JWTTools;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,5 +31,17 @@ public class AuthService {
         } else {
             throw new UnauthorizedException("Wrong credentials");
         }
+    }
+
+    public User updatePassword(User user, UserPasswordUpdateDTO body) {
+        if (!this.bcrypt.matches(body.oldPassword(), user.getPassword()))
+            throw new UnauthorizedException("Wrong credentials");
+        if (!body.newPassword().equals(body.repeatNewPassword()))
+            throw new ConflictException("Repeated password doesn't match the new password");
+        if (this.bcrypt.matches(body.newPassword(), user.getPassword()))
+            throw new ConflictException("This password was used recently, try to insert a new one");
+
+        user.setPassword(bcrypt.encode(body.newPassword()));
+        return userService.update(user);
     }
 }
