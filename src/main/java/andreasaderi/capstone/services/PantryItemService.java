@@ -21,6 +21,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -95,5 +96,10 @@ public class PantryItemService {
     public void deleteOwnItem(UUID pantryItemId, User user) {
         PantryItem pantryItem = findByIdAndUser(pantryItemId, user);
         pantryItemRepository.delete(pantryItem);
+    }
+
+
+    public List<PantryItem> findByUser(User user) {
+        return pantryItemRepository.findByUser(user);
     }
 }

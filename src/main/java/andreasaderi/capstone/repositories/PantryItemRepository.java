@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,4 +20,6 @@ import java.util.UUID;
 public interface PantryItemRepository extends JpaRepository<PantryItem, UUID>, JpaSpecificationExecutor<PantryItem> {
 
     Optional<PantryItem> findByIngredientDefinitionAndPurchaseDateAndExpirationDateAndStorageLocationAndUser(IngredientDefinition ingredientDefinition, @PastOrPresent(message = "Purchase date must be in the present or in the past") @NotNull(message = "Purchase date can't be null") LocalDate localDate, @FutureOrPresent(message = "Expiration date must be in the future") @NotNull(message = "Expiration date can't be null") LocalDate localDate1, @NotNull(message = "Storage location can't be null") StorageLocation storageLocation, User user);
+
+    List<PantryItem> findByUser(User user);
 }

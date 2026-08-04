@@ -1,6 +1,7 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.Recipe;
+import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.RecipeRepository;
@@ -16,7 +17,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class RecipeService {
@@ -24,11 +28,13 @@ public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final RecipeSpecification recipeSpecification;
     private final CloudinaryService cloudinaryService;
+    private final PantryItemService pantryItemService;
 
-    public RecipeService(RecipeRepository recipeRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService) {
+    public RecipeService(RecipeRepository recipeRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService, PantryItemService pantryItemService) {
         this.recipeRepository = recipeRepository;
         this.recipeSpecification = recipeSpecification;
         this.cloudinaryService = cloudinaryService;
+        this.pantryItemService = pantryItemService;
     }
 
     public Recipe save(RecipeDTO body, MultipartFile recipeImage) {
@@ -88,6 +94,15 @@ public class RecipeService {
 
 
         return recipeRepository.findAll(spec, pageable);
+    }
+
+    public List<Recipe> findMostRelevantForUser(User user, int page, int size) {
+        Set<UUID> pantryIngredientIds = pantryItemService.findByUser(user).stream()
+                .map(item -> item.getIngredientDefinition().getIngredientDefinitionId())
+                .collect(Collectors.toSet());
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return recipeRepository.findRecipesSortedByMatchingIngredients(pantryIngredientIds);
     }
 
     public void delete(UUID recipeId) {
