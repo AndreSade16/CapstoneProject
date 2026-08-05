@@ -99,7 +99,12 @@ public class PantryItemService {
     }
 
 
-    public List<PantryItem> findByUser(User user) {
-        return pantryItemRepository.findByUser(user);
+    public List<PantryItem> findListByUser(User user) {
+        return pantryItemRepository.findListByUser(user);
+    }
+
+    public Page<PantryItem> findByUser(User user, int page, int size, String sortBy, Sort.Direction direction) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        return pantryItemRepository.findByUser(user, pageable);
     }
 }

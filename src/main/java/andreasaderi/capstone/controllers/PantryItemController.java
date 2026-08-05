@@ -45,7 +45,7 @@ public class PantryItemController {
     }
 
     @GetMapping("/me")
-    public Page<PantryItem> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "expirationDate") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute PantryItemFiltersDTO filters) {
+    public Page<PantryItem> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "expirationDate") String sortBy, @RequestParam(defaultValue = "ASC") Sort.Direction direction, @Valid @ModelAttribute PantryItemFiltersDTO filters) {
         return pantryItemService.findAll(page, size, sortBy, direction, filters);
     }
 

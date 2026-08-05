@@ -4,7 +4,6 @@ import andreasaderi.capstone.entities.PantryItem;
 import andreasaderi.capstone.entities.Recipe;
 import andreasaderi.capstone.entities.ShoppingList;
 import andreasaderi.capstone.entities.User;
-import andreasaderi.capstone.requestDTOs.PantryItemFiltersDTO;
 import andreasaderi.capstone.responseDTOs.DashboardDTO;
 import andreasaderi.capstone.responseDTOs.PantryItemResponseDTO;
 import andreasaderi.capstone.responseDTOs.RecipeCardDTO;
@@ -40,9 +39,9 @@ public class DashboardController {
 
     @GetMapping
     public DashboardDTO getDashBoard(@AuthenticationPrincipal User user) {
-
-        Page<PantryItem> pantryItemsPage = pantryItemService.findAll(1, 10, "expirationDate", Sort.Direction.DESC, new PantryItemFiltersDTO(null, null, null, null, null, null, null, null));
-        List<PantryItemResponseDTO> pantryItemResponseDTOs = pantryItemsPage.stream().map(pantryItem -> new PantryItemResponseDTO(pantryItem.getPantryItemId(), pantryItem.getIngredientDefinition().getIngredientDefinitionId(), pantryItem.getIngredientDefinition().getName(), pantryItem.getIngredientDefinition().getImageUrl(), pantryItem.getQuantity(), pantryItem.getIngredientDefinition().getUnit(), pantryItem.getStorageLocation(), pantryItem.getExpirationDate(), LocalDate.now().until(pantryItem.getExpirationDate(), ChronoUnit.DAYS))).toList();
+        Page<PantryItem> pantryItemsPage = pantryItemService.findByUser(user, 0, 6, "expirationDate", Sort.Direction.ASC);
+        System.out.println(pantryItemsPage);
+        List<PantryItemResponseDTO> pantryItemResponseDTOs = pantryItemsPage.stream().map(pantryItem -> new PantryItemResponseDTO(pantryItem.getPantryItemId(), pantryItem.getIngredientDefinition().getIngredientDefinitionId(), pantryItem.getIngredientDefinition().getName(), pantryItem.getIngredientDefinition().getImageUrl(), pantryItem.getQuantity(), pantryItem.getIngredientDefinition().getUnit(), pantryItem.getStorageLocation(), pantryItem.getExpirationDate(), LocalDate.now().until(pantryItem.getExpirationDate(), ChronoUnit.DAYS), pantryItem.getIngredientDefinition().getCategory())).toList();
 
         ShoppingListResponseDTO activeShoppingList;
         try {

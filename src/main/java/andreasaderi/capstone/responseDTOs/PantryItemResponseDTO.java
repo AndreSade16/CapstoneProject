@@ -1,5 +1,6 @@
 package andreasaderi.capstone.responseDTOs;
 
+import andreasaderi.capstone.entities.Category;
 import andreasaderi.capstone.entities.StorageLocation;
 import andreasaderi.capstone.entities.Unit;
 
@@ -23,6 +24,8 @@ public record PantryItemResponseDTO(
 
         LocalDate expirationDate,
 
-        long daysUntilExpiration
+        long daysUntilExpiration,
+
+        Category category
 ) {
 }

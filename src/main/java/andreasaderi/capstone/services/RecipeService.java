@@ -97,7 +97,7 @@ public class RecipeService {
     }
 
     public List<Recipe> findMostRelevantForUser(User user, int page, int size) {
-        Set<UUID> pantryIngredientIds = pantryItemService.findByUser(user).stream()
+        Set<UUID> pantryIngredientIds = pantryItemService.findListByUser(user).stream()
                 .map(item -> item.getIngredientDefinition().getIngredientDefinitionId())
                 .collect(Collectors.toSet());
 
