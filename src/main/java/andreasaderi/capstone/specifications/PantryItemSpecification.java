@@ -2,6 +2,7 @@ package andreasaderi.capstone.specifications;
 
 import andreasaderi.capstone.entities.PantryItem;
 import andreasaderi.capstone.entities.StorageLocation;
+import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.requestDTOs.PantryItemFiltersDTO;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -11,9 +12,14 @@ import java.time.LocalDate;
 @Component
 public class PantryItemSpecification {
 
-    public Specification<PantryItem> specificationPantryItemBuilder(PantryItemFiltersDTO filters) {
+    public Specification<PantryItem> specificationPantryItemBuilder(PantryItemFiltersDTO filters, User user) {
         Specification<PantryItem> spec = (root, query, cb) -> cb.conjunction();
 
+
+        if (user != null) {
+            spec = spec.and(hasUser(user));
+        }
+        
         if (filters == null) {
             return spec;
         }
@@ -53,10 +59,16 @@ public class PantryItemSpecification {
         return spec;
     }
 
+    private Specification<PantryItem> hasUser(User user) {
+        return (root, query, cb) ->
+                cb.equal(root.get("user"), user
+                );
+    }
+
     public Specification<PantryItem> hasName(String name) {
         return (root, query, cb) ->
                 cb.like(
-                        cb.lower(root.get("name")),
+                        cb.lower(root.get("ingredientDefinition").get("name")),
                         "%" + name.toLowerCase() + "%"
                 );
     }

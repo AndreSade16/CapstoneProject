@@ -71,7 +71,7 @@ public class PantryItemService {
         if (page < 0) page = 0;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Specification<PantryItem> spec = pantryItemSpecification.specificationPantryItemBuilder(filters);
+        Specification<PantryItem> spec = pantryItemSpecification.specificationPantryItemBuilder(filters, null);
 
 
         return pantryItemRepository.findAll(spec, pageable);
@@ -104,7 +104,19 @@ public class PantryItemService {
     }
 
     public Page<PantryItem> findByUser(User user, int page, int size, String sortBy, Sort.Direction direction) {
+        if (size <= 0) size = 10;
+        if (size > 20) size = 20;
+        if (page < 0) page = 0;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         return pantryItemRepository.findByUser(user, pageable);
+    }
+
+    public Page<PantryItem> findByUserWithFilters(User user, int page, int size, String sortBy, Sort.Direction direction, PantryItemFiltersDTO filters) {
+        if (size <= 0) size = 10;
+        if (size > 20) size = 20;
+        if (page < 0) page = 0;
+        Specification<PantryItem> spec = pantryItemSpecification.specificationPantryItemBuilder(filters, user);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        return pantryItemRepository.findAll(spec, pageable);
     }
 }

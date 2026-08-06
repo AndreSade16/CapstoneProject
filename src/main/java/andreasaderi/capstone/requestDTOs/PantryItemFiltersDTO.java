@@ -1,6 +1,7 @@
 package andreasaderi.capstone.requestDTOs;
 
 import andreasaderi.capstone.entities.StorageLocation;
+import andreasaderi.capstone.entities.User;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ public record PantryItemFiltersDTO(
         LocalDate maxPurchaseDate,
         LocalDate minExpirationDate,
         LocalDate maxExpirationDate,
-        StorageLocation storageLocation
+        StorageLocation storageLocation,
+        User user
 ) {
 }

@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +31,7 @@ public class PantryItemController {
         this.pantryItemService = pantryItemService;
     }
 
-    @PostMapping
+    @PostMapping("/me")
     public PantryItemCreatedDTO createPantryItem(@AuthenticationPrincipal User user, @RequestBody @Validated PantryItemDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
@@ -44,9 +45,14 @@ public class PantryItemController {
         return new PantryItemCreatedDTO(pantryItem.getPantryItemId());
     }
 
-    @GetMapping("/me")
+    @GetMapping()
     public Page<PantryItem> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "expirationDate") String sortBy, @RequestParam(defaultValue = "ASC") Sort.Direction direction, @Valid @ModelAttribute PantryItemFiltersDTO filters) {
         return pantryItemService.findAll(page, size, sortBy, direction, filters);
+    }
+
+    @GetMapping("/me")
+    public Page<PantryItem> findOwn(@AuthenticationPrincipal User user, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "expirationDate") String sortBy, @RequestParam(defaultValue = "ASC") Sort.Direction direction, @Valid @ModelAttribute PantryItemFiltersDTO filters) {
+        return pantryItemService.findByUserWithFilters(user, page, size, sortBy, direction, filters);
     }
 
     @PatchMapping("/me/{pantryItemId}")
@@ -62,6 +68,7 @@ public class PantryItemController {
     }
 
     @DeleteMapping("/me/{pantryItemId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteOwnItem(@PathVariable UUID pantryItemId, @AuthenticationPrincipal User user) {
         pantryItemService.deleteOwnItem(pantryItemId, user);
     }
