@@ -48,7 +48,14 @@ public class IngredientDefinitionService {
         if (size <= 0) size = 10;
         if (size > 20) size = 20;
         if (page < 0) page = 0;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Sort sort = Sort.by(direction, sortBy);
+
+        if (!sortBy.equals("id")) {
+            sort = sort.and(Sort.by(direction, "IngredientDefinitionId"));
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Specification<IngredientDefinition> spec = ingredientDefinitionSpecification.specificationIngredientDefinitionBuilder(filters);
 

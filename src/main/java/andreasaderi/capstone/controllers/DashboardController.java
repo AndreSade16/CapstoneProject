@@ -46,7 +46,7 @@ public class DashboardController {
         ShoppingListResponseDTO activeShoppingList;
         try {
             ShoppingList shoppingList = shoppingListService.findByUserAndActive(user);
-            activeShoppingList = new ShoppingListResponseDTO(shoppingList.getShoppingListId(), shoppingList.getCreatedAt(), shoppingList.getUpdatedAt(), shoppingList.getShoppingListStatus(), shoppingList.getItems());
+            activeShoppingList = new ShoppingListResponseDTO(shoppingList.getShoppingListId(), shoppingList.getCreatedAt(), shoppingList.getUpdatedAt(), shoppingList.getShoppingListStatus(), shoppingList.getItems().stream().limit(6).toList());
         } catch (RuntimeException exception) {
             activeShoppingList = new ShoppingListResponseDTO(null, null, null, null, null);
         }
