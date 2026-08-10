@@ -115,8 +115,14 @@ public class PantryItemService {
         if (size <= 0) size = 10;
         if (size > 20) size = 20;
         if (page < 0) page = 0;
+        Sort sort = Sort.by(direction, sortBy);
+
+        if (!sortBy.equals("pantryItemId")) {
+            sort = sort.and(Sort.by(direction, "pantryItemId"));
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
         Specification<PantryItem> spec = pantryItemSpecification.specificationPantryItemBuilder(filters, user);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         return pantryItemRepository.findAll(spec, pageable);
     }
 }
