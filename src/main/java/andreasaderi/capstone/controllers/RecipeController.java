@@ -1,16 +1,21 @@
 package andreasaderi.capstone.controllers;
 
 import andreasaderi.capstone.entities.Recipe;
+import andreasaderi.capstone.entities.ShoppingList;
+import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.ValidationException;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
 import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
 import andreasaderi.capstone.responseDTOs.RecipeCreatedDTO;
+import andreasaderi.capstone.responseDTOs.RecipeIngredientsToSlDTO;
 import andreasaderi.capstone.services.RecipeService;
+import andreasaderi.capstone.services.ShoppingListService;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +29,12 @@ import java.util.UUID;
 public class RecipeController {
 
     private final RecipeService recipeService;
+    private final ShoppingListService shoppingListService;
 
 
-    public RecipeController(RecipeService recipeService) {
+    public RecipeController(RecipeService recipeService, ShoppingListService shoppingListService) {
         this.recipeService = recipeService;
+        this.shoppingListService = shoppingListService;
     }
 
     @PostMapping
@@ -41,6 +48,17 @@ public class RecipeController {
         }
         Recipe saved = recipeService.save(body, recipeImage);
         return new RecipeCreatedDTO(saved.getRecipeId());
+    }
+
+    @PostMapping("/{recipeId}/{peopleCount}")
+    public RecipeIngredientsToSlDTO putRecipeIngredientsInSl(@AuthenticationPrincipal User user, @PathVariable UUID recipeId, @PathVariable int peopleCount) {
+
+        if (peopleCount > 20) throw new ValidationException("Servings can't be more than 20");
+
+        ShoppingList shoppingList = shoppingListService.findByUserAndActive(user);
+
+        return new RecipeIngredientsToSlDTO(recipeService.putRecipeIngredientsInSl(recipeId, shoppingList, peopleCount));
+
     }
 
     @GetMapping

@@ -2,6 +2,7 @@ package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.ConflictException;
+import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.UnauthorizedException;
 import andreasaderi.capstone.requestDTOs.LoginDTO;
 import andreasaderi.capstone.requestDTOs.UserPasswordUpdateDTO;
@@ -23,13 +24,17 @@ public class AuthService {
     }
 
     public String checkCredentialsAndGenerateToken(LoginDTO body) {
-
-        User foundUser = userService.findByEmail(body.email());
+        User foundUser;
+        try {
+            foundUser = userService.findByEmail(body.email());
+        } catch (NotFoundException ex) {
+            throw new UnauthorizedException("Wrong credentials.");
+        }
 
         if (this.bcrypt.matches(body.password(), foundUser.getPassword())) {
             return this.jwtTools.generateToken(foundUser);
         } else {
-            throw new UnauthorizedException("Wrong credentials");
+            throw new UnauthorizedException("Wrong credentials.");
         }
     }
 

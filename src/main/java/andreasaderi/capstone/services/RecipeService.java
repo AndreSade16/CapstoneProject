@@ -1,12 +1,16 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.Recipe;
+import andreasaderi.capstone.entities.RecipeIngredient;
+import andreasaderi.capstone.entities.ShoppingList;
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
 import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
+import andreasaderi.capstone.requestDTOs.ShoppingListItemDTO;
+import andreasaderi.capstone.responseDTOs.ShoppingListItemCreatedDTO;
 import andreasaderi.capstone.specifications.RecipeSpecification;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -29,12 +33,14 @@ public class RecipeService {
     private final RecipeSpecification recipeSpecification;
     private final CloudinaryService cloudinaryService;
     private final PantryItemService pantryItemService;
+    private final ShoppingListItemService shoppingListItemService;
 
-    public RecipeService(RecipeRepository recipeRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService, PantryItemService pantryItemService) {
+    public RecipeService(RecipeRepository recipeRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService, PantryItemService pantryItemService, ShoppingListItemService shoppingListItemService) {
         this.recipeRepository = recipeRepository;
         this.recipeSpecification = recipeSpecification;
         this.cloudinaryService = cloudinaryService;
         this.pantryItemService = pantryItemService;
+        this.shoppingListItemService = shoppingListItemService;
     }
 
     public Recipe save(RecipeDTO body, MultipartFile recipeImage) {
@@ -108,6 +114,14 @@ public class RecipeService {
     public void delete(UUID recipeId) {
         Recipe recipe = findById(recipeId);
         recipeRepository.delete(recipe);
+    }
+
+    public List<ShoppingListItemCreatedDTO> putRecipeIngredientsInSl(UUID recipeId, ShoppingList shoppingList, int peopleCount) {
+        Recipe recipe = findByIdAndIncrementVisits(recipeId);
+
+        List<RecipeIngredient> ingredients = recipe.getIngredients();
+
+        return ingredients.stream().map(ingredient -> new ShoppingListItemCreatedDTO(shoppingListItemService.save(shoppingList, new ShoppingListItemDTO(ingredient.getIngredientDefinition().getIngredientDefinitionId(), ingredient.getQuantityPerPerson() * peopleCount)).getShoppingListItemId())).toList();
     }
 }
 

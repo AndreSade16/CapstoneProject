@@ -61,7 +61,7 @@ public class PantryItemService {
 
 
     public void createFromPurchasedItem(ShoppingListItem item, PurchasedItemDTO purchasedItem, User authenticatedUser) {
-        PantryItemDTO body = new PantryItemDTO(item.getIngredientDefinition().getIngredientDefinitionId(), purchasedItem.purchasedQuantity(), LocalDate.now(), purchasedItem.expirationDate(), purchasedItem.storageLocation());
+        PantryItemDTO body = new PantryItemDTO(item.getIngredientDefinition().getIngredientDefinitionId(), purchasedItem.purchasedQuantity(), LocalDate.now(), purchasedItem.expirationDate(), item.getIngredientDefinition().getDefaultStorageLocation());
         this.save(body, authenticatedUser);
     }
 
