@@ -37,7 +37,7 @@ public class Recipe {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private RecipeCost cost;
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String procedure;
     @Column(nullable = false, name = "visits_count")
     private long visitsCount;

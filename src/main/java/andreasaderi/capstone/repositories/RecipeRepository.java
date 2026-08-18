@@ -1,5 +1,6 @@
 package andreasaderi.capstone.repositories;
 
+import andreasaderi.capstone.entities.IngredientDefinition;
 import andreasaderi.capstone.entities.Recipe;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -26,4 +27,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>, JpaSpecif
             ORDER BY COUNT(ri) DESC
             """)
     List<Recipe> findRecipesSortedByMatchingIngredients(@Param("ingredientIds") Set<UUID> ingredientIds);
+
+    List<Recipe> findByIngredientsIngredientDefinition(IngredientDefinition ingredientDefinition);
 }

@@ -1,9 +1,6 @@
 package andreasaderi.capstone.services;
 
-import andreasaderi.capstone.entities.Recipe;
-import andreasaderi.capstone.entities.RecipeIngredient;
-import andreasaderi.capstone.entities.ShoppingList;
-import andreasaderi.capstone.entities.User;
+import andreasaderi.capstone.entities.*;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.RecipeRepository;
@@ -122,6 +119,14 @@ public class RecipeService {
         List<RecipeIngredient> ingredients = recipe.getIngredients();
 
         return ingredients.stream().map(ingredient -> new ShoppingListItemCreatedDTO(shoppingListItemService.save(shoppingList, new ShoppingListItemDTO(ingredient.getIngredientDefinition().getIngredientDefinitionId(), ingredient.getQuantityPerPerson() * peopleCount)).getShoppingListItemId())).toList();
+    }
+
+    public List<Recipe> findByIngredientsIngredientDefinition(IngredientDefinition ingredientDefinition) {
+        return recipeRepository.findByIngredientsIngredientDefinition(ingredientDefinition);
+    }
+
+    public void deleteAll(List<Recipe> recipesWithIngredient) {
+        recipeRepository.deleteAll(recipesWithIngredient);
     }
 }
 
