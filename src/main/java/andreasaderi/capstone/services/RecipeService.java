@@ -3,6 +3,7 @@ package andreasaderi.capstone.services;
 import andreasaderi.capstone.entities.*;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
+import andreasaderi.capstone.repositories.RecipeIngredientRepository;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
 import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
@@ -27,13 +28,15 @@ import java.util.stream.Collectors;
 public class RecipeService {
 
     private final RecipeRepository recipeRepository;
+    private final RecipeIngredientRepository recipeIngredientRepository;
     private final RecipeSpecification recipeSpecification;
     private final CloudinaryService cloudinaryService;
     private final PantryItemService pantryItemService;
     private final ShoppingListItemService shoppingListItemService;
 
-    public RecipeService(RecipeRepository recipeRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService, PantryItemService pantryItemService, ShoppingListItemService shoppingListItemService) {
+    public RecipeService(RecipeRepository recipeRepository, RecipeIngredientRepository recipeIngredientRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService, PantryItemService pantryItemService, ShoppingListItemService shoppingListItemService) {
         this.recipeRepository = recipeRepository;
+        this.recipeIngredientRepository = recipeIngredientRepository;
         this.recipeSpecification = recipeSpecification;
         this.cloudinaryService = cloudinaryService;
         this.pantryItemService = pantryItemService;
@@ -75,6 +78,7 @@ public class RecipeService {
         recipe.setDifficulty(body.difficulty());
         recipe.setCost(body.cost());
         recipe.setProcedure(body.procedure());
+        recipe.getIngredients().clear();
 
         return recipeRepository.save(recipe);
     }
