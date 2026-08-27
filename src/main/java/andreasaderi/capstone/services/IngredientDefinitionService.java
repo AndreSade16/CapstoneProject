@@ -1,13 +1,16 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.IngredientDefinition;
+import andreasaderi.capstone.entities.Recipe;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
 import andreasaderi.capstone.repositories.IngredientDefinitionRepository;
 import andreasaderi.capstone.requestDTOs.IngredientDefinitionDTO;
 import andreasaderi.capstone.requestDTOs.IngredientDefinitionFiltersDTO;
 import andreasaderi.capstone.specifications.IngredientDefinitionSpecification;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,11 +28,13 @@ public class IngredientDefinitionService {
     private final IngredientDefinitionRepository ingredientDefinitionRepository;
     private final CloudinaryService cloudinaryService;
     private final IngredientDefinitionSpecification ingredientDefinitionSpecification;
+    private final RecipeService recipeService;
 
-    public IngredientDefinitionService(IngredientDefinitionRepository ingredientDefinitionRepository, CloudinaryService cloudinaryService, IngredientDefinitionSpecification ingredientDefinitionSpecification) {
+    public IngredientDefinitionService(IngredientDefinitionRepository ingredientDefinitionRepository, CloudinaryService cloudinaryService, IngredientDefinitionSpecification ingredientDefinitionSpecification, @Lazy RecipeService recipeService) {
         this.ingredientDefinitionRepository = ingredientDefinitionRepository;
         this.cloudinaryService = cloudinaryService;
         this.ingredientDefinitionSpecification = ingredientDefinitionSpecification;
+        this.recipeService = recipeService;
     }
 
 
@@ -48,7 +54,14 @@ public class IngredientDefinitionService {
         if (size <= 0) size = 10;
         if (size > 20) size = 20;
         if (page < 0) page = 0;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Sort sort = Sort.by(direction, sortBy);
+
+        if (!sortBy.equals("id")) {
+            sort = sort.and(Sort.by(direction, "IngredientDefinitionId"));
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Specification<IngredientDefinition> spec = ingredientDefinitionSpecification.specificationIngredientDefinitionBuilder(filters);
 
@@ -87,8 +100,11 @@ public class IngredientDefinitionService {
 
     }
 
+    @Transactional
     public void delete(UUID ingredientDefinitionId) {
         IngredientDefinition ingredientDefinition = findById(ingredientDefinitionId);
+        List<Recipe> recipesWithIngredient = recipeService.findByIngredientsIngredientDefinition(ingredientDefinition);
+        recipeService.deleteAll(recipesWithIngredient);
         ingredientDefinitionRepository.delete(ingredientDefinition);
     }
 }

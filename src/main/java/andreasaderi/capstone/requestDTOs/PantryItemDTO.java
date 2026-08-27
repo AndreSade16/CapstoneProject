@@ -1,13 +1,16 @@
 package andreasaderi.capstone.requestDTOs;
 
 import andreasaderi.capstone.entities.StorageLocation;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 public record PantryItemDTO(
-        @NotBlank(message = "Ingredient definition ID can't be blank")
+        @NotNull(message = "Ingredient definition ID can't be blank")
         UUID ingredientDefinitionId,
         @NotNull(message = "Quantity can't be null")
         @Positive(message = "Quantity must be a positive number")

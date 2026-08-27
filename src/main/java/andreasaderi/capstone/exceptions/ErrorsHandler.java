@@ -3,6 +3,7 @@ package andreasaderi.capstone.exceptions;
 import andreasaderi.capstone.responseDTOs.ErrorsDTO;
 import andreasaderi.capstone.responseDTOs.ErrorsWithListDTO;
 import org.apache.coyote.BadRequestException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -26,6 +27,13 @@ public class ErrorsHandler {
     public ErrorsDTO handleNotFoundException(NotFoundException e) {
         return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
     }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorsDTO handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        return new ErrorsDTO("Fields validation exception", LocalDateTime.now());
+    }
+
 
     @ExceptionHandler(MissingServletRequestPartException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

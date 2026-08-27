@@ -59,7 +59,7 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    public User adminUpdateUser(@PathVariable UUID userId, @RequestBody @Validated UserUpdateByAdminDTO body, BindingResult validationResult) {
+    public User adminUpdateUser(@PathVariable UUID userId, @ModelAttribute @Validated UserUpdateByAdminDTO body, @RequestPart(value = "avatar", required = false) MultipartFile avatar, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
@@ -67,7 +67,7 @@ public class UserController {
             throw new ValidationException(errorsList);
         }
 
-        return userService.adminUpdateUser(userId, body);
+        return userService.adminUpdateUser(userId, body, avatar);
     }
 
     @PatchMapping("/me/password")
@@ -88,7 +88,7 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProfileById(@PathVariable UUID userId) {
-        userService.deleteProfileById(userId);
+    public void deleteProfileById(@PathVariable UUID userId, @AuthenticationPrincipal User activeUser) {
+        userService.deleteProfileById(userId, activeUser);
     }
 }

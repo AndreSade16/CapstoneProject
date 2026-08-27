@@ -1,10 +1,8 @@
 package andreasaderi.capstone.services;
 
+import andreasaderi.capstone.entities.Role;
 import andreasaderi.capstone.entities.User;
-import andreasaderi.capstone.exceptions.FileNotAllowedException;
-import andreasaderi.capstone.exceptions.NotFoundException;
-import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
-import andreasaderi.capstone.exceptions.UnauthorizedException;
+import andreasaderi.capstone.exceptions.*;
 import andreasaderi.capstone.repositories.UserRepository;
 import andreasaderi.capstone.requestDTOs.*;
 import andreasaderi.capstone.specifications.UserSpecification;
@@ -100,7 +98,7 @@ public class UserService {
         return userRepository.save(authenticatedUser);
     }
 
-    public User adminUpdateUser(UUID userId, UserUpdateByAdminDTO body) {
+    public User adminUpdateUser(UUID userId, UserUpdateByAdminDTO body, MultipartFile avatar) {
 
         User user = findById(userId);
 
@@ -116,6 +114,8 @@ public class UserService {
         if (body.password() != null) user.setPassword(bcrypt.encode(body.password()));
         if (body.firstName() != null) user.setFirstName(body.firstName());
         if (body.lastName() != null) user.setLastName(body.lastName());
+        if (avatar != null && !avatar.isEmpty())
+            user.setAvatar(cloudinaryService.uploadValidatedImageAndGetUrl(avatar));
 
         return userRepository.save(user);
     }
@@ -139,8 +139,12 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    public void deleteProfileById(UUID userId) {
+    public void deleteProfileById(UUID userId, User activeUser) {
         User user = findById(userId);
+        if (activeUser.getUserId().equals(userId))
+            throw new ConflictException("To delete your own profile, visit your profile page");
+        if (user.getRole().equals(Role.ADMIN))
+            throw new UnauthorizedException("You can't delete another ADMIN profile");
 
         userRepository.delete(user);
     }

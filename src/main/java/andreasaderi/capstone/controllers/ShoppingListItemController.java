@@ -33,7 +33,7 @@ public class ShoppingListItemController {
     }
 
 
-    @PostMapping("/{shoppingListId}/items")
+    @PostMapping("me/{shoppingListId}/items")
     @ResponseStatus(HttpStatus.CREATED)
     public ShoppingListItemCreatedDTO createShoppingListItem(@PathVariable UUID shoppingListId, @RequestBody @Validated ShoppingListItemDTO body, @AuthenticationPrincipal User authenticatedUser, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
