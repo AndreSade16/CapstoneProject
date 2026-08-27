@@ -1,6 +1,7 @@
 package andreasaderi.capstone.controllers;
 
 import andreasaderi.capstone.entities.Recipe;
+import andreasaderi.capstone.entities.RecipeIngredient;
 import andreasaderi.capstone.entities.ShoppingList;
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.ValidationException;
@@ -8,9 +9,12 @@ import andreasaderi.capstone.requestDTOs.RecipeDTO;
 import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
 import andreasaderi.capstone.responseDTOs.RecipeCreatedDTO;
 import andreasaderi.capstone.responseDTOs.RecipeIngredientsToSlDTO;
+import andreasaderi.capstone.services.RecipeIngredientService;
 import andreasaderi.capstone.services.RecipeService;
 import andreasaderi.capstone.services.ShoppingListService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -30,11 +34,13 @@ public class RecipeController {
 
     private final RecipeService recipeService;
     private final ShoppingListService shoppingListService;
+    private final RecipeIngredientService recipeIngredientService;
 
 
-    public RecipeController(RecipeService recipeService, ShoppingListService shoppingListService) {
+    public RecipeController(RecipeService recipeService, ShoppingListService shoppingListService, RecipeIngredientService recipeIngredientService) {
         this.recipeService = recipeService;
         this.shoppingListService = shoppingListService;
+        this.recipeIngredientService = recipeIngredientService;
     }
 
     @PostMapping
@@ -59,6 +65,14 @@ public class RecipeController {
 
         return new RecipeIngredientsToSlDTO(recipeService.putRecipeIngredientsInSl(recipeId, shoppingList, peopleCount));
 
+    }
+
+    @PostMapping("/{recipeId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void prepareRecipe(@AuthenticationPrincipal User user, @PathVariable UUID recipeId, @RequestParam @NotNull @Max(20) int peopleCount) {
+        Recipe recipe = recipeService.findById(recipeId);
+        List<RecipeIngredient> recipeIngredients = recipeIngredientService.findRecipeIngredients(recipeId);
+        recipeService.prepareRecipe(user, recipeIngredients, peopleCount);
     }
 
     @GetMapping

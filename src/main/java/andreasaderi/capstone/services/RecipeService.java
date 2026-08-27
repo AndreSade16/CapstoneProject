@@ -1,10 +1,11 @@
 package andreasaderi.capstone.services;
 
 import andreasaderi.capstone.entities.*;
+import andreasaderi.capstone.exceptions.ConflictException;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
-import andreasaderi.capstone.repositories.RecipeIngredientRepository;
 import andreasaderi.capstone.repositories.RecipeRepository;
+import andreasaderi.capstone.requestDTOs.PantryItemUpdateDTO;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
 import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
 import andreasaderi.capstone.requestDTOs.ShoppingListItemDTO;
@@ -19,24 +20,20 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class RecipeService {
 
     private final RecipeRepository recipeRepository;
-    private final RecipeIngredientRepository recipeIngredientRepository;
     private final RecipeSpecification recipeSpecification;
     private final CloudinaryService cloudinaryService;
     private final PantryItemService pantryItemService;
     private final ShoppingListItemService shoppingListItemService;
 
-    public RecipeService(RecipeRepository recipeRepository, RecipeIngredientRepository recipeIngredientRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService, PantryItemService pantryItemService, ShoppingListItemService shoppingListItemService) {
+    public RecipeService(RecipeRepository recipeRepository, RecipeSpecification recipeSpecification, CloudinaryService cloudinaryService, PantryItemService pantryItemService, ShoppingListItemService shoppingListItemService) {
         this.recipeRepository = recipeRepository;
-        this.recipeIngredientRepository = recipeIngredientRepository;
         this.recipeSpecification = recipeSpecification;
         this.cloudinaryService = cloudinaryService;
         this.pantryItemService = pantryItemService;
@@ -128,6 +125,51 @@ public class RecipeService {
     public List<Recipe> findByIngredientsIngredientDefinition(IngredientDefinition ingredientDefinition) {
         return recipeRepository.findByIngredientsIngredientDefinition(ingredientDefinition);
     }
+
+    public void prepareRecipe(User user, List<RecipeIngredient> recipeIngredients, int peopleCount) {
+
+        List<PantryItem> pantryItems = pantryItemService.findListByUser(user);
+
+        Map<UUID, Double> availableQuantities = pantryItems.stream()
+                .collect(Collectors.groupingBy(
+                        item -> item.getIngredientDefinition().getIngredientDefinitionId(),
+                        Collectors.summingDouble(PantryItem::getQuantity)
+                ));
+
+        boolean canPrepare = recipeIngredients.stream().allMatch(ri -> {
+            UUID ingredientId = ri.getIngredientDefinition().getIngredientDefinitionId();
+            double requiredTotal = ri.getQuantityPerPerson() * peopleCount;
+            double available = availableQuantities.getOrDefault(ingredientId, 0.0);
+            return available >= requiredTotal;
+        });
+
+        if (!canPrepare) {
+            throw new ConflictException("You don't have enough ingredients in your pantry to prepare this recipe.");
+        }
+
+        for (RecipeIngredient ri : recipeIngredients) {
+            double amountNeeded = ri.getQuantityPerPerson() * peopleCount;
+            UUID ingredientId = ri.getIngredientDefinition().getIngredientDefinitionId();
+
+            List<PantryItem> matchingItems = pantryItems.stream()
+                    .filter(item -> item.getIngredientDefinition().getIngredientDefinitionId().equals(ingredientId))
+                    .sorted(Comparator.comparing(PantryItem::getExpirationDate))
+                    .toList();
+
+            for (PantryItem item : matchingItems) {
+                if (amountNeeded <= 0) break;
+
+                if (item.getQuantity() <= amountNeeded) {
+                    amountNeeded -= item.getQuantity();
+                    pantryItemService.deleteOwnItem(item.getPantryItemId(), user);
+                } else {
+                    pantryItemService.updateOwnPantryItem(item.getPantryItemId(), new PantryItemUpdateDTO(item.getQuantity() - amountNeeded, item.getPurchaseDate(), item.getExpirationDate(), item.getStorageLocation()), user);
+                    amountNeeded = 0;
+                }
+            }
+        }
+    }
+
 
     public void deleteAll(List<Recipe> recipesWithIngredient) {
         recipeRepository.deleteAll(recipesWithIngredient);
