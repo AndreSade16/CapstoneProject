@@ -1,5 +1,6 @@
 package andreasaderi.capstone.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -21,6 +22,8 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
 
     @Bean
@@ -43,9 +46,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "https://www.mywonderfulfe.com"));
-        // Definiamo una WHITELIST di tutti gli indirizzi FRONTEND che voglio possano accedere a questo backend senza avere i problemi di CORS
-        // Potrei usare anche il carattere '*' però sarebbe troppo poco restrittivo (utile solo nel caso di API pubbliche)
+        corsConfiguration.setAllowedOrigins(List.of(frontendUrl));
+
 
         corsConfiguration.setAllowedMethods(List.of("*"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
