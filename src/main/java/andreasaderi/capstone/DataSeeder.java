@@ -5,14 +5,13 @@ import andreasaderi.capstone.entities.*;
 import andreasaderi.capstone.repositories.IngredientDefinitionRepository;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Component
+
 public class DataSeeder implements CommandLineRunner {
 
     private final IngredientDefinitionRepository ingredientRepo;
