@@ -5,9 +5,9 @@ import andreasaderi.capstone.exceptions.ValidationException;
 import andreasaderi.capstone.requestDTOs.RecipeIngredientDTO;
 import andreasaderi.capstone.responseDTOs.RecipeIngredientCreatedDTO;
 import andreasaderi.capstone.services.RecipeIngredientService;
-import andreasaderi.capstone.services.RecipeService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,15 +19,14 @@ import java.util.UUID;
 @RequestMapping("/recipes")
 public class RecipeIngredientController {
 
-    private final RecipeService recipeService;
     private final RecipeIngredientService recipeIngredientService;
 
 
-    public RecipeIngredientController(RecipeService recipeService, RecipeIngredientService recipeIngredientService) {
-        this.recipeService = recipeService;
+    public RecipeIngredientController(RecipeIngredientService recipeIngredientService) {
         this.recipeIngredientService = recipeIngredientService;
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @PostMapping("/{recipeId}/ingredients")
     public RecipeIngredientCreatedDTO createRecipeIngredient(@RequestBody @Validated RecipeIngredientDTO body, @PathVariable UUID recipeId, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
@@ -42,16 +41,19 @@ public class RecipeIngredientController {
         return new RecipeIngredientCreatedDTO(saved.getRecipeIngredientId());
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping("/{recipeId}/ingredients")
-    public List<RecipeIngredient> findRecipeIngrediens(@PathVariable UUID recipeId) {
+    public List<RecipeIngredient> findRecipeIngredients(@PathVariable UUID recipeId) {
         return recipeIngredientService.findRecipeIngredients(recipeId);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @PutMapping("/{recipeId}/ingredients/{recipeIngredientId}")
     public RecipeIngredient updateRecipeIngredientById(@PathVariable UUID recipeId, @PathVariable UUID recipeIngredientId, @RequestBody RecipeIngredientDTO body) {
         return recipeIngredientService.updateRecipeIngredientById(recipeId, recipeIngredientId, body);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @DeleteMapping("/{recipeId}/ingredients/{recipeIngredientId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable UUID recipeId, @PathVariable UUID recipeIngredientId) {

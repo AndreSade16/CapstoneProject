@@ -10,6 +10,7 @@ import andreasaderi.capstone.services.ShoppingListItemService;
 import andreasaderi.capstone.services.ShoppingListService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -33,6 +34,7 @@ public class ShoppingListItemController {
     }
 
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @PostMapping("me/{shoppingListId}/items")
     @ResponseStatus(HttpStatus.CREATED)
     public ShoppingListItemCreatedDTO createShoppingListItem(@PathVariable UUID shoppingListId, @RequestBody @Validated ShoppingListItemDTO body, @AuthenticationPrincipal User authenticatedUser, BindingResult validationResult) {
@@ -51,12 +53,14 @@ public class ShoppingListItemController {
         return new ShoppingListItemCreatedDTO(saved.getShoppingListItemId());
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping("me/{shoppingListId}/items")
     public List<ShoppingListItem> findItemsByShoppingList(@PathVariable UUID shoppingListId, @AuthenticationPrincipal User authenticatedUser) {
         ShoppingList shoppingList = shoppingListService.findByIdAndUser(shoppingListId, authenticatedUser);
         return shoppingListItemService.findByShoppingList(shoppingList);
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @PatchMapping("/{shoppingListId}/items/{shoppingListItemId}")
     public ShoppingListItem updateById(@AuthenticationPrincipal User authenticatedUser, @PathVariable UUID shoppingListId, @PathVariable UUID shoppingListItemId, @RequestBody @Validated ShoppingListItemDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
@@ -73,6 +77,7 @@ public class ShoppingListItemController {
         return shoppingListItemService.updateById(authenticatedUser, shoppingList, shoppingListItemId, body);
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @DeleteMapping("me/{shoppingListId}/items/{shoppingListItemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteOwnItemById(@PathVariable UUID shoppingListId, @PathVariable UUID shoppingListItemId, @AuthenticationPrincipal User user) {

@@ -9,6 +9,7 @@ import andreasaderi.capstone.responseDTOs.ShoppingListResponseDTO;
 import andreasaderi.capstone.services.ShoppingListService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class ShoppingListController {
         this.shoppingListService = shoppingListService;
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ShoppingListCreatedDTO createShoppingList(@AuthenticationPrincipal User authenticatedUser) {
@@ -32,6 +34,7 @@ public class ShoppingListController {
         return new ShoppingListCreatedDTO(saved.getShoppingListId());
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @PostMapping("/{id}/complete")
     public ShoppingListCompletedDTO completeShoppingList(
             @PathVariable UUID id,
@@ -42,17 +45,20 @@ public class ShoppingListController {
         return new ShoppingListCompletedDTO(saved.getShoppingListId(), saved.getShoppingListStatus());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @GetMapping("/{ShoppingListId}")
     public ShoppingList findById(@PathVariable UUID ShoppingListId) {
         return shoppingListService.findById(ShoppingListId);
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping("/me")
     public ShoppingListResponseDTO findActiveShoppingList(@AuthenticationPrincipal User user) {
         ShoppingList shoppingList = shoppingListService.findByUserAndActive(user);
         return new ShoppingListResponseDTO(shoppingList.getShoppingListId(), shoppingList.getCreatedAt(), shoppingList.getUpdatedAt(), shoppingList.getShoppingListStatus(), shoppingList.getItems().stream().toList());
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @DeleteMapping("/me/{shoppingListId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteOwnShoppingList(@PathVariable UUID shoppingListId, @AuthenticationPrincipal User user) {

@@ -19,6 +19,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -43,6 +44,7 @@ public class RecipeController {
         this.recipeIngredientService = recipeIngredientService;
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RecipeCreatedDTO createRecipe(@RequestPart(value = "recipeImage") MultipartFile recipeImage, @ModelAttribute @Validated RecipeDTO body, BindingResult validationResult) {
@@ -56,6 +58,7 @@ public class RecipeController {
         return new RecipeCreatedDTO(saved.getRecipeId());
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @PostMapping("/{recipeId}/{peopleCount}")
     public RecipeIngredientsToSlDTO putRecipeIngredientsInSl(@AuthenticationPrincipal User user, @PathVariable UUID recipeId, @PathVariable int peopleCount) {
 
@@ -67,6 +70,7 @@ public class RecipeController {
 
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @PostMapping("/{recipeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void prepareRecipe(@AuthenticationPrincipal User user, @PathVariable UUID recipeId, @RequestParam @NotNull @Max(20) int peopleCount) {
@@ -75,6 +79,7 @@ public class RecipeController {
         recipeService.prepareRecipe(user, recipeIngredients, peopleCount);
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping
     public Page<Recipe> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "visitsCount") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute RecipeFiltersDTO filters) {
         return recipeService.findAll(page, size, sortBy, direction, filters);
@@ -85,16 +90,19 @@ public class RecipeController {
         return recipeService.findById(recipeId);
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping("/{recipeId}/visit")
     public Recipe visitRecipeById(@PathVariable UUID recipeId) {
         return recipeService.findByIdAndIncrementVisits(recipeId);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @PutMapping("/{recipeId}")
     public Recipe updateById(@PathVariable UUID recipeId, @ModelAttribute @Validated RecipeDTO body, @RequestPart(value = "recipeImage", required = false) MultipartFile recipeImage) {
         return recipeService.updateById(recipeId, body, recipeImage);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @DeleteMapping("/{recipeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable UUID recipeId) {

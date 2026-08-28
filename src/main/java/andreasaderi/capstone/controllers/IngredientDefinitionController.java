@@ -11,6 +11,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ public class IngredientDefinitionController {
         this.ingredientDefinitionService = ingredientDefinitionService;
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public IngredientDefinitionCreatedDTO createIngredient(@ModelAttribute @Validated IngredientDefinitionDTO body, @RequestPart(value = "ingredientImage") MultipartFile ingredientImage, BindingResult validationResult) {
@@ -44,16 +46,19 @@ public class IngredientDefinitionController {
         return new IngredientDefinitionCreatedDTO(saved.getIngredientDefinitionId());
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping
     public Page<IngredientDefinition> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "category") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute IngredientDefinitionFiltersDTO filters) {
         return ingredientDefinitionService.findAll(page, size, sortBy, direction, filters);
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping("/{ingredientDefinitionId}")
     public IngredientDefinition findById(@PathVariable UUID ingredientDefinitionId) {
         return ingredientDefinitionService.findById(ingredientDefinitionId);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @PutMapping("/{ingredientDefinitionId}")
     public IngredientDefinition updateById(@PathVariable UUID ingredientDefinitionId, @ModelAttribute @Validated IngredientDefinitionDTO body, @RequestPart(value = "ingredientImage", required = false) MultipartFile ingredientImage, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
@@ -66,6 +71,7 @@ public class IngredientDefinitionController {
 
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @DeleteMapping("/{ingredientDefinitionId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable UUID ingredientDefinitionId) {
