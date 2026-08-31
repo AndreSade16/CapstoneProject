@@ -100,12 +100,11 @@ public class RecipeService {
         return recipeRepository.findAll(spec, pageable);
     }
 
-    public List<Recipe> findMostRelevantForUser(User user, int page, int size) {
+    public List<Recipe> findMostRelevantForUser(User user) {
         Set<UUID> pantryIngredientIds = pantryItemService.findListByUser(user).stream()
                 .map(item -> item.getIngredientDefinition().getIngredientDefinitionId())
                 .collect(Collectors.toSet());
 
-        Pageable pageable = PageRequest.of(page - 1, size);
         return recipeRepository.findRecipesSortedByMatchingIngredients(pantryIngredientIds);
     }
 
