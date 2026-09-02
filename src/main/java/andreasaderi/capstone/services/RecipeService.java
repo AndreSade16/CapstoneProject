@@ -169,9 +169,47 @@ public class RecipeService {
         }
     }
 
+    public List<ShoppingListItemCreatedDTO> putRemainingRecipeIngredientsInSl(
+            List<PantryItem> pantryItems, UUID recipeId, ShoppingList shoppingList, int peopleCount) {
+
+        Recipe recipe = findByIdAndIncrementVisits(recipeId);
+        List<RecipeIngredient> ingredients = recipe.getIngredients();
+
+        Map<UUID, Double> pantryQuantitiesByIngredient = pantryItems.stream()
+                .collect(Collectors.groupingBy(
+                        pantryItem -> pantryItem.getIngredientDefinition().getIngredientDefinitionId(),
+                        Collectors.summingDouble(PantryItem::getQuantity)
+                ));
+
+        Map<UUID, Double> ingredientsToAdd = new HashMap<>();
+
+        for (RecipeIngredient recipeIngredient : ingredients) {
+            UUID ingredientDefinitionId = recipeIngredient.getIngredientDefinition().getIngredientDefinitionId();
+
+            double neededQuantity = recipeIngredient.getQuantityPerPerson() * peopleCount;
+            double ownedQuantity = pantryQuantitiesByIngredient.getOrDefault(ingredientDefinitionId, 0.0);
+            double missingQuantity = neededQuantity - ownedQuantity;
+
+            if (missingQuantity > 0) {
+                ingredientsToAdd.put(ingredientDefinitionId, missingQuantity);
+            }
+        }
+
+        if (ingredientsToAdd.isEmpty()) throw new ConflictException("You already have enough ingredients!");
+
+        return ingredientsToAdd.entrySet().stream()
+                .map(entry -> new ShoppingListItemCreatedDTO(
+                        shoppingListItemService.save(
+                                shoppingList,
+                                new ShoppingListItemDTO(entry.getKey(), entry.getValue())
+                        ).getShoppingListItemId()
+                ))
+                .toList();
+    }
 
     public void deleteAll(List<Recipe> recipesWithIngredient) {
         recipeRepository.deleteAll(recipesWithIngredient);
     }
+
 }
 
