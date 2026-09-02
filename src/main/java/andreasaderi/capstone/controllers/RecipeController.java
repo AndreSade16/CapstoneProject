@@ -1,14 +1,12 @@
 package andreasaderi.capstone.controllers;
 
-import andreasaderi.capstone.entities.Recipe;
-import andreasaderi.capstone.entities.RecipeIngredient;
-import andreasaderi.capstone.entities.ShoppingList;
-import andreasaderi.capstone.entities.User;
+import andreasaderi.capstone.entities.*;
 import andreasaderi.capstone.exceptions.ValidationException;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
 import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
 import andreasaderi.capstone.responseDTOs.RecipeCreatedDTO;
 import andreasaderi.capstone.responseDTOs.RecipeIngredientsToSlDTO;
+import andreasaderi.capstone.services.PantryItemService;
 import andreasaderi.capstone.services.RecipeIngredientService;
 import andreasaderi.capstone.services.RecipeService;
 import andreasaderi.capstone.services.ShoppingListService;
@@ -36,12 +34,14 @@ public class RecipeController {
     private final RecipeService recipeService;
     private final ShoppingListService shoppingListService;
     private final RecipeIngredientService recipeIngredientService;
+    private final PantryItemService pantryItemService;
 
 
-    public RecipeController(RecipeService recipeService, ShoppingListService shoppingListService, RecipeIngredientService recipeIngredientService) {
+    public RecipeController(RecipeService recipeService, ShoppingListService shoppingListService, RecipeIngredientService recipeIngredientService, PantryItemService pantryItemService) {
         this.recipeService = recipeService;
         this.shoppingListService = shoppingListService;
         this.recipeIngredientService = recipeIngredientService;
+        this.pantryItemService = pantryItemService;
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN')")
@@ -69,6 +69,21 @@ public class RecipeController {
         return new RecipeIngredientsToSlDTO(recipeService.putRecipeIngredientsInSl(recipeId, shoppingList, peopleCount));
 
     }
+
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    @PostMapping("/{recipeId}/remaining/{peopleCount}")
+    public RecipeIngredientsToSlDTO putRemainingRecipeIngredientsInSl(@AuthenticationPrincipal User user, @PathVariable UUID recipeId, @PathVariable int peopleCount) {
+
+        if (peopleCount > 20) throw new ValidationException("Servings can't be more than 20");
+
+        ShoppingList shoppingList = shoppingListService.findByUserAndActive(user);
+
+        List<PantryItem> pantryItems = pantryItemService.findListByUser(user);
+
+        return new RecipeIngredientsToSlDTO(recipeService.putRemainingRecipeIngredientsInSl(pantryItems, recipeId, shoppingList, peopleCount));
+
+    }
+
 
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @PostMapping("/{recipeId}")
