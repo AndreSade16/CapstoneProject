@@ -197,6 +197,9 @@ public class RecipeService {
 
         if (ingredientsToAdd.isEmpty()) throw new ConflictException("You already have enough ingredients!");
 
+        if (ingredients.stream().map(recipeIngredient -> recipeIngredient.getIngredientDefinition().getIngredientDefinitionId()).noneMatch(id -> pantryItems.stream().filter(pantryItem -> !pantryItem.getIngredientDefinition().getIngredientDefinitionId().equals(id)).toList().isEmpty()))
+            throw new ConflictException("You have to buy ALL the ingredients to prepare this recipe");
+
         return ingredientsToAdd.entrySet().stream()
                 .map(entry -> new ShoppingListItemCreatedDTO(
                         shoppingListItemService.save(
