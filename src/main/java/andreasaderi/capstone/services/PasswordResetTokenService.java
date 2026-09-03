@@ -18,6 +18,7 @@ public class PasswordResetTokenService {
 
     public void deleteByUser(User user) {
         passwordResetTokenRepository.deleteByUser(user);
+        passwordResetTokenRepository.flush();
     }
 
     public void save(PasswordResetToken token) {

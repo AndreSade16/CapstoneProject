@@ -8,6 +8,7 @@ import andreasaderi.capstone.repositories.UserRepository;
 import andreasaderi.capstone.requestDTOs.*;
 import andreasaderi.capstone.specifications.UserSpecification;
 import andreasaderi.capstone.tools.EmailSender;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -155,6 +156,7 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    @Transactional
     public void generateAndSendResetCode(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
 
