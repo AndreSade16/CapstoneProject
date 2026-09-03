@@ -1,5 +1,6 @@
 package andreasaderi.capstone.services;
 
+import andreasaderi.capstone.entities.PasswordResetToken;
 import andreasaderi.capstone.entities.Role;
 import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.*;
@@ -7,6 +8,7 @@ import andreasaderi.capstone.repositories.UserRepository;
 import andreasaderi.capstone.requestDTOs.*;
 import andreasaderi.capstone.specifications.UserSpecification;
 import andreasaderi.capstone.tools.EmailSender;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -19,6 +21,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,16 +31,18 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder bcrypt;
-    private final EmailSender mailgun;
+    private final EmailSender emailSender;
     private final UserSpecification userSpecification;
     private final CloudinaryService cloudinaryService;
+    private final PasswordResetTokenService passwordResetTokenService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder bcrypt, EmailSender mailgun, UserSpecification userSpecification, CloudinaryService cloudinaryService) {
+    public UserService(UserRepository userRepository, PasswordEncoder bcrypt, EmailSender emailSender, UserSpecification userSpecification, CloudinaryService cloudinaryService, PasswordResetTokenService passwordResetTokenService) {
         this.userRepository = userRepository;
         this.cloudinaryService = cloudinaryService;
         this.bcrypt = bcrypt;
-        this.mailgun = mailgun;
+        this.emailSender = emailSender;
         this.userSpecification = userSpecification;
+        this.passwordResetTokenService = passwordResetTokenService;
     }
 
     public User register(UserDTO body, MultipartFile profileImage) {
@@ -57,7 +64,7 @@ public class UserService {
 
         User newUser = userRepository.save(new User(body.username(), body.email(), bcrypt.encode(body.password()), body.firstName(), body.lastName(), imageUrl));
 
-        mailgun.sendCustomRegistrationEmail(newUser);
+        emailSender.sendCustomRegistrationEmail(newUser);
 
         return newUser;
 
@@ -147,5 +154,58 @@ public class UserService {
             throw new UnauthorizedException("You can't delete another ADMIN profile");
 
         userRepository.delete(user);
+    }
+
+    @Transactional
+    public void generateAndSendResetCode(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            return;
+        }
+
+        User user = userOpt.get();
+
+        String code = generateNumericCode(6);
+
+        PasswordResetToken token = new PasswordResetToken();
+        token.setUser(user);
+        token.setCodeHash(bcrypt.encode(code));
+        token.setExpiryDate(LocalDateTime.now().plusMinutes(15));
+        token.setUsed(false);
+
+        passwordResetTokenService.deleteByUser(user);
+        passwordResetTokenService.save(token);
+
+        emailSender.sendPasswordResetEmail(user, code);
+    }
+
+    private String generateNumericCode(int length) {
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return sb.toString();
+    }
+
+    public void resetPassword(String email, String code, String newPassword) {
+        User user = findByEmail(email);
+
+        PasswordResetToken token = passwordResetTokenService.findByUser(user);
+
+        if (token.isUsed() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new UnauthorizedException("Codice expired or already utilized");
+        }
+
+        if (!bcrypt.matches(code, token.getCodeHash())) {
+            throw new UnauthorizedException("Invalid code");
+        }
+
+        user.setPassword(bcrypt.encode(newPassword));
+        userRepository.save(user);
+
+        token.setUsed(true);
+        passwordResetTokenService.save(token);
     }
 }
