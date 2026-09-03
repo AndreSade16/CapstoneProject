@@ -105,4 +105,60 @@ public class EmailSender {
 
         System.out.println(response.getBody());
     }
+
+    public void sendPasswordResetEmail(User recipient, String code) {
+        String subject = "Reset your Fresko password";
+
+        String text = "Hi, " + recipient.getFirstName() + ".\n\n"
+                + "We received a request to reset your Fresko password.\n\n"
+                + "Your verification code is: " + code + "\n\n"
+                + "This code will expire in 15 minutes.\n\n"
+                + "If you didn't request this, you can safely ignore this email — your password will remain unchanged.";
+
+        String html = """
+                <html>
+                  <body style="margin: 0; padding: 0; background-color: #061809; font-family: Arial, Helvetica, sans-serif;">
+                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color: #061809; padding: 40px 20px;">
+                      <tr>
+                        <td align="center">
+                          <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="max-width: 480px; background-color: #112615; border-radius: 12px; padding: 40px 30px;">
+                            <tr>
+                              <td align="center" style="padding-bottom: 20px;">
+                                <h1 style="color: #F2F2E9; font-size: 22px; margin: 0;">Reset your password</h1>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="color: #F2F2E9; font-size: 16px; line-height: 1.6; padding-bottom: 24px;">
+                                <p style="margin: 0 0 12px 0;">Hi, %s.</p>
+                                <p style="margin: 0;">We received a request to reset your Fresko password. Use the code below to continue.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="padding-bottom: 24px;">
+                                <div style="display: inline-block; background-color: #061809; border: 1px solid #BADB06; border-radius: 8px; padding: 16px 32px;">
+                                  <span style="color: #BADB06; font-size: 32px; font-weight: bold; letter-spacing: 8px;">%s</span>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="color: #F2F2E9; font-size: 14px; line-height: 1.5; padding-bottom: 8px;">
+                                <p style="margin: 0;">This code will expire in <strong>15 minutes</strong>.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="color: #6c757d; font-size: 13px; line-height: 1.5; border-top: 1px solid #1a3320; padding-top: 16px; margin-top: 8px;">
+                                <p style="margin: 0;">If you didn't request this, you can safely ignore this email — your password will remain unchanged.</p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </body>
+                </html>
+                """.formatted(recipient.getFirstName(), code);
+
+        BrevoRecipientDTO to = new BrevoRecipientDTO(recipient.getEmail(), recipient.getFirstName());
+        sendEmail(to, subject, text, html);
+    }
 }
