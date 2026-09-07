@@ -1,7 +1,6 @@
 package andreasaderi.capstone.security;
 
 import andreasaderi.capstone.entities.User;
-import andreasaderi.capstone.exceptions.UnauthorizedException;
 import andreasaderi.capstone.services.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,20 +29,34 @@ public class TokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer "))
-            throw new UnauthorizedException("Request doesn't have a correctly formulated token");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid authorization token");
+            return;
+        }
 
-        String accessToken = authHeader.replace("Bearer ", "");
+        try {
+            String accessToken = authHeader.replace("Bearer ", "");
 
-        this.jwtTools.verifyToken(accessToken);
+            jwtTools.verifyToken(accessToken);
 
-        UUID userId = this.jwtTools.extractIdFromToken(accessToken);
-        User authenticatedUser = this.userService.findById(userId);
+            UUID userId = jwtTools.extractIdFromToken(accessToken);
+            User authenticatedUser = userService.findById(userId);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, authenticatedUser.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            Authentication authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            authenticatedUser,
+                            null,
+                            authenticatedUser.getAuthorities()
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+            return;
+        }
 
         filterChain.doFilter(request, response);
     }
