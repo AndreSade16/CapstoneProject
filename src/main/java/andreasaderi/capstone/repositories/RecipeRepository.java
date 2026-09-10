@@ -2,8 +2,11 @@ package andreasaderi.capstone.repositories;
 
 import andreasaderi.capstone.entities.IngredientDefinition;
 import andreasaderi.capstone.entities.Recipe;
+import andreasaderi.capstone.entities.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -29,4 +32,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>, JpaSpecif
     List<Recipe> findRecipesSortedByMatchingIngredients(@Param("ingredientIds") Set<UUID> ingredientIds);
 
     List<Recipe> findByIngredientsIngredientDefinition(IngredientDefinition ingredientDefinition);
+
+    Page<Recipe> findByUser(User user, Pageable pageable);
 }

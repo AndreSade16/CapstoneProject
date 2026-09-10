@@ -11,6 +11,7 @@ import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
 import andreasaderi.capstone.requestDTOs.ShoppingListItemDTO;
 import andreasaderi.capstone.responseDTOs.ShoppingListItemCreatedDTO;
 import andreasaderi.capstone.specifications.RecipeSpecification;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -86,6 +87,15 @@ public class RecipeService {
         recipe.setVisitsCount(recipe.getVisitsCount() + 1);
 
         return recipeRepository.save(recipe);
+    }
+
+    public Page<Recipe> findPersonalRecipes(User user, int page, int size, String sortBy, Sort.Direction direction) {
+        if (size <= 0) size = 10;
+        if (size > 20) size = 20;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        return recipeRepository.findByUser(user, pageable);
     }
 
     public Page<Recipe> findAll(int page, int size, String sortBy, Sort.Direction direction, @Valid RecipeFiltersDTO filters) {
@@ -218,5 +228,24 @@ public class RecipeService {
         recipeRepository.deleteAll(recipesWithIngredient);
     }
 
+    @Transactional
+    public Recipe savePersonalRecipe(User user, UUID recipeId) {
+        Recipe recipe = findById(recipeId);
+        Recipe newRecipe = new Recipe(recipe.getName(), recipe.getDescription(), recipe.getImageUrl(), recipe.getPreparationTime(), recipe.getCookingTime(), recipe.getDifficulty(), recipe.getCost(), recipe.getProcedure());
+        List<RecipeIngredient> copiedIngredients = recipe.getIngredients().stream()
+                .map(ri -> {
+                    RecipeIngredient copy = new RecipeIngredient();
+                    copy.setRecipe(newRecipe);
+                    copy.setIngredientDefinition(ri.getIngredientDefinition());
+                    copy.setQuantityPerPerson(ri.getQuantityPerPerson());
+                    return copy;
+                })
+                .toList();
+        newRecipe.setIngredients(copiedIngredients);
+
+        newRecipe.setUser(user);
+
+        return recipeRepository.save(newRecipe);
+    }
 }
 

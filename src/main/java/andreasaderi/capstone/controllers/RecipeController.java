@@ -95,11 +95,19 @@ public class RecipeController {
     }
 
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    @PostMapping("/{recipeId}/save")
+    @ResponseStatus(HttpStatus.CREATED)
+    public RecipeCreatedDTO savePersonalRecipe(@AuthenticationPrincipal User user, @PathVariable UUID recipeId) {
+        return new RecipeCreatedDTO(recipeService.savePersonalRecipe(user, recipeId).getRecipeId());
+    }
+
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping
     public Page<Recipe> findAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "visitsCount") String sortBy, @RequestParam(defaultValue = "DESC") Sort.Direction direction, @Valid @ModelAttribute RecipeFiltersDTO filters) {
         return recipeService.findAll(page, size, sortBy, direction, filters);
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping("/{recipeId}")
     public Recipe findById(@PathVariable UUID recipeId) {
         return recipeService.findById(recipeId);
@@ -109,6 +117,17 @@ public class RecipeController {
     @GetMapping("/{recipeId}/visit")
     public Recipe visitRecipeById(@PathVariable UUID recipeId) {
         return recipeService.findByIdAndIncrementVisits(recipeId);
+    }
+
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    @GetMapping("/saved")
+    public Page<Recipe> findPersonalRecipes(
+            @AuthenticationPrincipal User user,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "visitsCount") String sortBy,
+            @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
+        return recipeService.findPersonalRecipes(user, page, size, sortBy, direction);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN')")
