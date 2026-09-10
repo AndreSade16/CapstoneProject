@@ -34,4 +34,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>, JpaSpecif
     List<Recipe> findByIngredientsIngredientDefinition(IngredientDefinition ingredientDefinition);
 
     Page<Recipe> findByUser(User user, Pageable pageable);
+
+    boolean existsByNameAndUser(String name, User user);
 }

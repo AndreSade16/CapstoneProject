@@ -4,6 +4,7 @@ import andreasaderi.capstone.entities.*;
 import andreasaderi.capstone.exceptions.ConflictException;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
+import andreasaderi.capstone.exceptions.UnauthorizedException;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import andreasaderi.capstone.requestDTOs.PantryItemUpdateDTO;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
@@ -118,9 +119,15 @@ public class RecipeService {
         return recipeRepository.findRecipesSortedByMatchingIngredients(pantryIngredientIds);
     }
 
-    public void delete(UUID recipeId) {
+    public void delete(UUID recipeId, User authenticatedUser) {
         Recipe recipe = findById(recipeId);
-        recipeRepository.delete(recipe);
+        if (recipe.getUser() == null) {
+            if (authenticatedUser.getRole().equals(Role.ADMIN)) {
+                recipeRepository.delete(recipe);
+            } else throw new UnauthorizedException("You can't delete public recipes");
+        } else if (recipe.getUser().getUserId().equals(authenticatedUser.getUserId())) {
+            recipeRepository.delete(recipe);
+        } else throw new UnauthorizedException("You can't delete this recipe");
     }
 
     public List<ShoppingListItemCreatedDTO> putRecipeIngredientsInSl(UUID recipeId, ShoppingList shoppingList, int peopleCount) {
@@ -231,6 +238,9 @@ public class RecipeService {
     @Transactional
     public Recipe savePersonalRecipe(User user, UUID recipeId) {
         Recipe recipe = findById(recipeId);
+        if (recipeRepository.existsByNameAndUser(recipe.getName(), user)) {
+            throw new RecordAlreadyExistsException("You already saved this recipe!");
+        }
         Recipe newRecipe = new Recipe(recipe.getName(), recipe.getDescription(), recipe.getImageUrl(), recipe.getPreparationTime(), recipe.getCookingTime(), recipe.getDifficulty(), recipe.getCost(), recipe.getProcedure());
         List<RecipeIngredient> copiedIngredients = recipe.getIngredients().stream()
                 .map(ri -> {
@@ -246,6 +256,7 @@ public class RecipeService {
         newRecipe.setUser(user);
 
         return recipeRepository.save(newRecipe);
+
     }
 }
 

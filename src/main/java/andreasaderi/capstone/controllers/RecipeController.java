@@ -136,10 +136,10 @@ public class RecipeController {
         return recipeService.updateById(recipeId, body, recipeImage);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @DeleteMapping("/{recipeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable UUID recipeId) {
-        recipeService.delete(recipeId);
+    public void deleteById(@PathVariable UUID recipeId, @AuthenticationPrincipal User user) {
+        recipeService.delete(recipeId, user);
     }
 }
