@@ -130,7 +130,7 @@ public class RecipeController {
         return recipeService.findPersonalRecipes(user, page, size, sortBy, direction);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @PutMapping("/{recipeId}")
     public Recipe updateById(@PathVariable UUID recipeId, @ModelAttribute @Validated RecipeDTO body, @RequestPart(value = "recipeImage", required = false) MultipartFile recipeImage, @AuthenticationPrincipal User user) {
         return recipeService.updateById(recipeId, body, recipeImage, user);

@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -56,13 +57,19 @@ public class RecipeService {
 
         if (recipe.getUser() != null) {
             if (!recipe.getUser().getUserId().equals(user.getUserId()) && !user.getRole().equals(Role.ADMIN))
-                throw new ConflictException("You can't see a recipe that doesn't belong to you");
+                throw new AuthorizationDeniedException("You can't see a recipe that doesn't belong to you");
         }
         return recipe;
     }
 
     public Recipe updateById(UUID recipeId, RecipeDTO body, MultipartFile recipeImage, User user) {
         Recipe recipe = findById(recipeId, user);
+
+        if (recipe.getUser() != null) {
+            if (!recipe.getUser().getUserId().equals(user.getUserId()) && !user.getRole().equals(Role.ADMIN))
+                throw new AuthorizationDeniedException("You don't have authorization to edit this recipe.");
+        } else if (!user.getRole().equals(Role.ADMIN))
+            throw new AuthorizationDeniedException("You don't have authorization to edit a public recipe.");
 
         if (!recipe.getName().equalsIgnoreCase(body.name())
                 && recipeRepository.existsByName(body.name())) {
@@ -86,6 +93,7 @@ public class RecipeService {
         recipe.getIngredients().clear();
 
         return recipeRepository.save(recipe);
+        
     }
 
     public Recipe findByIdAndIncrementVisits(UUID id, User user) {
