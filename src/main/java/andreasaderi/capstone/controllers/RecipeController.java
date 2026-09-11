@@ -66,7 +66,7 @@ public class RecipeController {
 
         ShoppingList shoppingList = shoppingListService.findByUserAndActive(user);
 
-        return new RecipeIngredientsToSlDTO(recipeService.putRecipeIngredientsInSl(recipeId, shoppingList, peopleCount));
+        return new RecipeIngredientsToSlDTO(recipeService.putRecipeIngredientsInSl(recipeId, shoppingList, peopleCount, user));
 
     }
 
@@ -80,7 +80,7 @@ public class RecipeController {
 
         List<PantryItem> pantryItems = pantryItemService.findListByUser(user);
 
-        return new RecipeIngredientsToSlDTO(recipeService.putRemainingRecipeIngredientsInSl(pantryItems, recipeId, shoppingList, peopleCount));
+        return new RecipeIngredientsToSlDTO(recipeService.putRemainingRecipeIngredientsInSl(pantryItems, recipeId, shoppingList, peopleCount, user));
 
     }
 
@@ -89,8 +89,8 @@ public class RecipeController {
     @PostMapping("/{recipeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void prepareRecipe(@AuthenticationPrincipal User user, @PathVariable UUID recipeId, @RequestParam @NotNull @Max(20) int peopleCount) {
-        Recipe recipe = recipeService.findById(recipeId);
-        List<RecipeIngredient> recipeIngredients = recipeIngredientService.findRecipeIngredients(recipeId);
+        Recipe recipe = recipeService.findById(recipeId, user);
+        List<RecipeIngredient> recipeIngredients = recipeIngredientService.findRecipeIngredients(recipeId, user);
         recipeService.prepareRecipe(user, recipeIngredients, peopleCount);
     }
 
@@ -109,14 +109,14 @@ public class RecipeController {
 
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping("/{recipeId}")
-    public Recipe findById(@PathVariable UUID recipeId) {
-        return recipeService.findById(recipeId);
+    public Recipe findById(@PathVariable UUID recipeId, @AuthenticationPrincipal User user) {
+        return recipeService.findById(recipeId, user);
     }
 
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @GetMapping("/{recipeId}/visit")
-    public Recipe visitRecipeById(@PathVariable UUID recipeId) {
-        return recipeService.findByIdAndIncrementVisits(recipeId);
+    public Recipe visitRecipeById(@PathVariable UUID recipeId, @AuthenticationPrincipal User user) {
+        return recipeService.findByIdAndIncrementVisits(recipeId, user);
     }
 
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
@@ -132,8 +132,8 @@ public class RecipeController {
 
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     @PutMapping("/{recipeId}")
-    public Recipe updateById(@PathVariable UUID recipeId, @ModelAttribute @Validated RecipeDTO body, @RequestPart(value = "recipeImage", required = false) MultipartFile recipeImage) {
-        return recipeService.updateById(recipeId, body, recipeImage);
+    public Recipe updateById(@PathVariable UUID recipeId, @ModelAttribute @Validated RecipeDTO body, @RequestPart(value = "recipeImage", required = false) MultipartFile recipeImage, @AuthenticationPrincipal User user) {
+        return recipeService.updateById(recipeId, body, recipeImage, user);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
