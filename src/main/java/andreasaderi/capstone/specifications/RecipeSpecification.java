@@ -11,12 +11,11 @@ import org.springframework.stereotype.Component;
 public class RecipeSpecification {
 
     public Specification<Recipe> specificationRecipeBuilder(RecipeFiltersDTO filters) {
-        Specification<Recipe> spec = (root, query, cb) -> cb.conjunction();
+        Specification<Recipe> spec = isPublic();
 
         if (filters.name() != null && !filters.name().isBlank()) {
             spec = spec.and(hasName(filters.name()));
         }
-
 
         if (filters.minTime() != null) {
             spec = spec.and(hasTimeGreaterThan(filters.minTime()));
@@ -59,6 +58,10 @@ public class RecipeSpecification {
         return spec;
     }
 
+    public Specification<Recipe> isPublic() {
+        return (root, query, cb) -> cb.isNull(root.get("user"));
+    }
+
     public Specification<Recipe> hasName(String name) {
         return (root, query, cb) ->
                 cb.like(
@@ -66,7 +69,6 @@ public class RecipeSpecification {
                         "%" + name.toLowerCase() + "%"
                 );
     }
-
 
     public Specification<Recipe> hasDifficulty(RecipeDifficulty difficulty) {
         return (root, query, cb) ->

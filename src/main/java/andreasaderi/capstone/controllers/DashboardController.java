@@ -57,7 +57,7 @@ public class DashboardController {
         List<Recipe> recipesList = recipeService.findMostRelevantForUser(user);
         List<Recipe> dashboardRecipesList = recipesList.subList(0, Math.min(recipesList.size(), 4));
 
-        List<RecipeCardDTO> recipeCardDTOs = dashboardRecipesList.stream().map(recipe -> new RecipeCardDTO(recipe.getRecipeId(), recipe.getName(), recipe.getImageUrl(), recipe.getCookingTime() + recipe.getPreparationTime(), recipe.getDifficulty(), recipe.getCost())).toList();
+        List<RecipeCardDTO> recipeCardDTOs = dashboardRecipesList.stream().map(recipe -> new RecipeCardDTO(recipe.getRecipeId(), recipe.getName(), recipe.getImageUrl(), recipe.getCookingTime() + recipe.getPreparationTime(), recipe.getDifficulty(), recipe.getCost(), recipe.getUser() != null)).toList();
 
 
         return new DashboardDTO(pantryItemResponseDTOs, activeShoppingList, recipeCardDTOs);

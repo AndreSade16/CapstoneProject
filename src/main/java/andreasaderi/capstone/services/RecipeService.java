@@ -4,6 +4,7 @@ import andreasaderi.capstone.entities.*;
 import andreasaderi.capstone.exceptions.ConflictException;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
+import andreasaderi.capstone.exceptions.UnauthorizedException;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import andreasaderi.capstone.requestDTOs.PantryItemUpdateDTO;
 import andreasaderi.capstone.requestDTOs.RecipeDTO;
@@ -11,12 +12,14 @@ import andreasaderi.capstone.requestDTOs.RecipeFiltersDTO;
 import andreasaderi.capstone.requestDTOs.ShoppingListItemDTO;
 import andreasaderi.capstone.responseDTOs.ShoppingListItemCreatedDTO;
 import andreasaderi.capstone.specifications.RecipeSpecification;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,12 +52,24 @@ public class RecipeService {
         return recipeRepository.save(new Recipe(body.name(), body.description(), imageUrl, body.preparationTime(), body.cookingTime(), body.difficulty(), body.cost(), body.procedure()));
     }
 
-    public Recipe findById(UUID recipeId) {
-        return recipeRepository.findById(recipeId).orElseThrow(() -> new NotFoundException("Recipe with id '" + recipeId + "' not found"));
+    public Recipe findById(UUID recipeId, User user) {
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new NotFoundException("Recipe with id '" + recipeId + "' not found"));
+
+        if (recipe.getUser() != null) {
+            if (!recipe.getUser().getUserId().equals(user.getUserId()) && !user.getRole().equals(Role.ADMIN))
+                throw new AuthorizationDeniedException("You can't see a recipe that doesn't belong to you");
+        }
+        return recipe;
     }
 
-    public Recipe updateById(UUID recipeId, RecipeDTO body, MultipartFile recipeImage) {
-        Recipe recipe = findById(recipeId);
+    public Recipe updateById(UUID recipeId, RecipeDTO body, MultipartFile recipeImage, User user) {
+        Recipe recipe = findById(recipeId, user);
+
+        if (recipe.getUser() != null) {
+            if (!recipe.getUser().getUserId().equals(user.getUserId()) && !user.getRole().equals(Role.ADMIN))
+                throw new AuthorizationDeniedException("You don't have authorization to edit this recipe.");
+        } else if (!user.getRole().equals(Role.ADMIN))
+            throw new AuthorizationDeniedException("You don't have authorization to edit a public recipe.");
 
         if (!recipe.getName().equalsIgnoreCase(body.name())
                 && recipeRepository.existsByName(body.name())) {
@@ -78,14 +93,24 @@ public class RecipeService {
         recipe.getIngredients().clear();
 
         return recipeRepository.save(recipe);
+        
     }
 
-    public Recipe findByIdAndIncrementVisits(UUID id) {
-        Recipe recipe = findById(id);
+    public Recipe findByIdAndIncrementVisits(UUID id, User user) {
+        Recipe recipe = findById(id, user);
 
         recipe.setVisitsCount(recipe.getVisitsCount() + 1);
 
         return recipeRepository.save(recipe);
+    }
+
+    public Page<Recipe> findPersonalRecipes(User user, int page, int size, String sortBy, Sort.Direction direction) {
+        if (size <= 0) size = 10;
+        if (size > 20) size = 20;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        return recipeRepository.findByUser(user, pageable);
     }
 
     public Page<Recipe> findAll(int page, int size, String sortBy, Sort.Direction direction, @Valid RecipeFiltersDTO filters) {
@@ -105,16 +130,22 @@ public class RecipeService {
                 .map(item -> item.getIngredientDefinition().getIngredientDefinitionId())
                 .collect(Collectors.toSet());
 
-        return recipeRepository.findRecipesSortedByMatchingIngredients(pantryIngredientIds);
+        return recipeRepository.findRecipesSortedByMatchingIngredients(pantryIngredientIds).stream().filter(recipe -> recipe.getUser() == null || recipe.getUser().getUserId().equals(user.getUserId())).toList();
     }
 
-    public void delete(UUID recipeId) {
-        Recipe recipe = findById(recipeId);
-        recipeRepository.delete(recipe);
+    public void delete(UUID recipeId, User authenticatedUser) {
+        Recipe recipe = findById(recipeId, authenticatedUser);
+        if (recipe.getUser() == null) {
+            if (authenticatedUser.getRole().equals(Role.ADMIN)) {
+                recipeRepository.delete(recipe);
+            } else throw new UnauthorizedException("You can't delete public recipes");
+        } else if (recipe.getUser().getUserId().equals(authenticatedUser.getUserId())) {
+            recipeRepository.delete(recipe);
+        } else throw new UnauthorizedException("You can't delete this recipe");
     }
 
-    public List<ShoppingListItemCreatedDTO> putRecipeIngredientsInSl(UUID recipeId, ShoppingList shoppingList, int peopleCount) {
-        Recipe recipe = findByIdAndIncrementVisits(recipeId);
+    public List<ShoppingListItemCreatedDTO> putRecipeIngredientsInSl(UUID recipeId, ShoppingList shoppingList, int peopleCount, User user) {
+        Recipe recipe = findByIdAndIncrementVisits(recipeId, user);
 
         List<RecipeIngredient> ingredients = recipe.getIngredients();
 
@@ -170,9 +201,9 @@ public class RecipeService {
     }
 
     public List<ShoppingListItemCreatedDTO> putRemainingRecipeIngredientsInSl(
-            List<PantryItem> pantryItems, UUID recipeId, ShoppingList shoppingList, int peopleCount) {
+            List<PantryItem> pantryItems, UUID recipeId, ShoppingList shoppingList, int peopleCount, User user) {
 
-        Recipe recipe = findByIdAndIncrementVisits(recipeId);
+        Recipe recipe = findByIdAndIncrementVisits(recipeId, user);
         List<RecipeIngredient> ingredients = recipe.getIngredients();
 
         Map<UUID, Double> pantryQuantitiesByIngredient = pantryItems.stream()
@@ -218,5 +249,28 @@ public class RecipeService {
         recipeRepository.deleteAll(recipesWithIngredient);
     }
 
+    @Transactional
+    public Recipe savePersonalRecipe(User user, UUID recipeId) {
+        Recipe recipe = findById(recipeId, user);
+        if (recipeRepository.existsByNameAndUser(recipe.getName(), user)) {
+            throw new RecordAlreadyExistsException("You already saved this recipe!");
+        }
+        Recipe newRecipe = new Recipe(recipe.getName(), recipe.getDescription(), recipe.getImageUrl(), recipe.getPreparationTime(), recipe.getCookingTime(), recipe.getDifficulty(), recipe.getCost(), recipe.getProcedure());
+        List<RecipeIngredient> copiedIngredients = recipe.getIngredients().stream()
+                .map(ri -> {
+                    RecipeIngredient copy = new RecipeIngredient();
+                    copy.setRecipe(newRecipe);
+                    copy.setIngredientDefinition(ri.getIngredientDefinition());
+                    copy.setQuantityPerPerson(ri.getQuantityPerPerson());
+                    return copy;
+                })
+                .toList();
+        newRecipe.setIngredients(copiedIngredients);
+
+        newRecipe.setUser(user);
+
+        return recipeRepository.save(newRecipe);
+
+    }
 }
 
