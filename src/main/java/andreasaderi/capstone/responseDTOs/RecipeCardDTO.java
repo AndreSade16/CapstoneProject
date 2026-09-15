@@ -12,7 +12,7 @@ public record RecipeCardDTO(
         String imageUrl,
         double totalTime,
         RecipeDifficulty difficulty,
-        RecipeCost cost
-
+        RecipeCost cost,
+        boolean isPersonal
 ) {
 }

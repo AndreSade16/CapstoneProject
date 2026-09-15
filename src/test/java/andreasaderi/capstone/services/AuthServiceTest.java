@@ -96,7 +96,7 @@ public class AuthServiceTest {
                 .thenThrow(new NotFoundException("User not found"));
 
         assertThrows(
-                NotFoundException.class,
+                UnauthorizedException.class,
                 () -> authService.checkCredentialsAndGenerateToken(loginDTO)
         );
 

@@ -3,6 +3,7 @@ package andreasaderi.capstone.services;
 import andreasaderi.capstone.entities.IngredientDefinition;
 import andreasaderi.capstone.entities.Recipe;
 import andreasaderi.capstone.entities.RecipeIngredient;
+import andreasaderi.capstone.entities.User;
 import andreasaderi.capstone.exceptions.ConflictException;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
@@ -28,9 +29,9 @@ public class RecipeIngredientService {
         this.recipeService = recipeService;
     }
 
-    public RecipeIngredient save(RecipeIngredientDTO body, UUID recipeId) {
+    public RecipeIngredient save(RecipeIngredientDTO body, UUID recipeId, User user) {
         IngredientDefinition ingredientDefinition = ingredientDefinitionService.findById(body.ingredientDefinitionId());
-        Recipe recipe = recipeService.findById(recipeId);
+        Recipe recipe = recipeService.findById(recipeId, user);
         Optional<RecipeIngredient> optionalRecipeIngredient = recipeIngredientRepository.findByRecipeAndIngredientDefinition(recipe, ingredientDefinition);
         if (optionalRecipeIngredient.isPresent()) {
             RecipeIngredient recipeIngredient = optionalRecipeIngredient.get();
@@ -41,13 +42,13 @@ public class RecipeIngredientService {
         return recipeIngredientRepository.save(new RecipeIngredient(recipe, ingredientDefinition, body.quantityPerPerson()));
     }
 
-    public List<RecipeIngredient> findRecipeIngredients(UUID recipeId) {
-        Recipe recipe = recipeService.findById(recipeId);
+    public List<RecipeIngredient> findRecipeIngredients(UUID recipeId, User user) {
+        Recipe recipe = recipeService.findById(recipeId, user);
         return recipeIngredientRepository.findByRecipe(recipe);
     }
 
-    public RecipeIngredient updateRecipeIngredientById(UUID recipeId, UUID recipeIngredientId, RecipeIngredientDTO body) {
-        Recipe recipe = recipeService.findById(recipeId);
+    public RecipeIngredient updateRecipeIngredientById(UUID recipeId, UUID recipeIngredientId, RecipeIngredientDTO body, User user) {
+        Recipe recipe = recipeService.findById(recipeId, user);
         RecipeIngredient recipeIngredient = findById(recipeIngredientId);
 
         if (!recipeIngredient.getRecipe().getRecipeId().equals(recipe.getRecipeId()))
@@ -71,9 +72,9 @@ public class RecipeIngredientService {
         return recipeIngredientRepository.findById(recipeIngredientId).orElseThrow(() -> new NotFoundException("Recipe ingredient with id '" + recipeIngredientId + "' not found"));
     }
 
-    public void delete(UUID recipeId, UUID recipeIngredientId) {
+    public void delete(UUID recipeId, UUID recipeIngredientId, User user) {
         RecipeIngredient recipeIngredient = findById(recipeIngredientId);
-        Recipe recipe = recipeService.findById(recipeId);
+        Recipe recipe = recipeService.findById(recipeId, user);
         if (!recipeIngredient.getRecipe().getRecipeId().equals(recipe.getRecipeId()))
             throw new ConflictException("Ingredient " + recipeIngredient.getIngredientDefinition().getName() + " doesn't belong to recipe " + recipe.getName());
 

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "recipes")
+@Table(name = "recipes", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "user_id"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +21,7 @@ public class Recipe {
     @Setter(AccessLevel.NONE)
     @Column(nullable = false, name = "recipe_id")
     private UUID recipeId;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String description;
@@ -41,6 +41,10 @@ public class Recipe {
     private String procedure;
     @Column(nullable = false, name = "visits_count")
     private long visitsCount;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @OneToMany(
             mappedBy = "recipe",
