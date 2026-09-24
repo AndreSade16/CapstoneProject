@@ -4,6 +4,7 @@ package andreasaderi.capstone.services;
 import andreasaderi.capstone.entities.*;
 import andreasaderi.capstone.exceptions.NotFoundException;
 import andreasaderi.capstone.exceptions.RecordAlreadyExistsException;
+import andreasaderi.capstone.exceptions.UnauthorizedException;
 import andreasaderi.capstone.repositories.RecipeRepository;
 import andreasaderi.capstone.specifications.RecipeSpecification;
 import org.junit.jupiter.api.Test;
@@ -135,4 +136,16 @@ public class RecipeServiceTest {
         assertThrows(AuthorizationDeniedException.class, () -> recipeService.savePersonalRecipe(requestingUser, recipeId));
         verify(recipeRepository, never()).save(any());
     }
+
+    @Test
+    void deletePublicRecipeAsAStandardUserShouldThrowUnauthorizedException() {
+        User requestingUser = buildUser(Role.USER);
+        UUID recipeId = UUID.randomUUID();
+        Recipe publicRecipe = buildPublicRecipeWithIngredients();
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(publicRecipe));
+        assertThrows(UnauthorizedException.class, () -> recipeService.delete(recipeId, requestingUser));
+        verify(recipeRepository, never()).delete((Recipe) any());
+    }
+
+
 }
